@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState, useEffect, useMemo, useRef, ChangeEvent } from 'react';
+import React, { useState, useEffect, useMemo, useRef, ChangeEvent } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   Search, 
@@ -19,12 +19,100 @@ import {
   Info,
   Volume2,
   VolumeX,
-  Globe
+  Globe,
+  Calendar
 } from 'lucide-react';
 import Papa from 'papaparse';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { CIVILIZATIONS, GALAXIES } from './constants';
+
+function Autocomplete({
+  value,
+  placeholder,
+  onChange,
+  onSelectOption,
+  options,
+  id,
+  icon
+}: {
+  value: string;
+  placeholder: string;
+  onChange: (val: string) => void;
+  onSelectOption?: (val: string) => void;
+  options: string[];
+  id: string;
+  icon: React.ReactNode;
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleOutside = (e: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleOutside);
+    return () => document.removeEventListener('mousedown', handleOutside);
+  }, []);
+
+  const filteredOpts = useMemo(() => {
+    const query = value.trim().toLowerCase();
+    const optsWithAll = ['All', ...options.filter(o => o !== 'All')];
+    if (!query || query === 'all') {
+      return optsWithAll;
+    }
+    return optsWithAll.filter(opt => opt.toLowerCase().includes(query));
+  }, [value, options]);
+
+  return (
+    <div ref={containerRef} className="relative group w-full">
+      <div className="absolute inset-y-0 left-0 pl-6 flex items-center pointer-events-none text-[#FF0500] group-focus-within:text-[#FF0500] transition-colors">
+        {icon}
+      </div>
+      <input
+        id={id}
+        type="text"
+        value={value === 'All' ? '' : value}
+        placeholder={placeholder}
+        onFocus={() => setIsOpen(true)}
+        onChange={(e) => {
+          onChange(e.target.value);
+          setIsOpen(true);
+        }}
+        className="block w-full pl-14 pr-12 py-5 bg-[#141414] border-2 border-[#FF0500] rounded-full text-lg font-mono tracking-wider focus:outline-none focus:ring-2 focus:ring-[#FF0500] focus:border-[#FF0500] transition-all input-glow text-agt-orange shadow-[0_0_30px_rgba(255,5,0,0.05)] placeholder-agt-orange/40"
+      />
+      <AnimatePresence>
+        {isOpen && filteredOpts.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.12 }}
+            className="absolute z-50 w-full mt-2 max-h-60 overflow-y-auto bg-[#141414] border-2 border-[#FF0500] rounded-3xl shadow-[0_10px_40px_rgba(255,5,0,0.2)] scrollbar-thin scrollbar-thumb-red-600 overflow-x-hidden"
+          >
+            {filteredOpts.map((opt, i) => (
+              <button
+                key={i}
+                type="button"
+                onClick={() => {
+                  onChange(opt);
+                  if (onSelectOption) onSelectOption(opt);
+                  setIsOpen(false);
+                }}
+                className="w-full text-left px-6 py-3.5 text-base font-mono font-medium text-[#FFB451] hover:bg-[#FF0500]/10 border-b border-[#FF0500]/10 last:border-0 transition-colors"
+                id={`autocomplete-opt-${id}-${i}`}
+              >
+                {opt}
+              </button>
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
 
 // Column configuration mapping
 interface ColumnConfig {
@@ -33,7 +121,639 @@ interface ColumnConfig {
   rawIndex: number;
 }
 
-type ReportType = 'simple' | 'detailed';
+type ReportType = 'simple' | 'detailed' | 'custom';
+
+interface CustomColumnDef {
+  colNum: string;
+  label: string;
+  idxs: number[];
+}
+
+const CUSTOM_COLUMN_TOGGLES: CustomColumnDef[] = [
+  { colNum: "1", label: "Base Name", idxs: [0] },
+  { colNum: "2", label: "Planet", idxs: [1] },
+  { colNum: "3", label: "System", idxs: [2] },
+  { colNum: "4", label: "Region", idxs: [3] },
+  { colNum: "5", label: "Galaxy", idxs: [4] },
+  { colNum: "6", label: "Coordinates", idxs: [5] },
+  { colNum: "7", label: "Glyph", idxs: [6] },
+  { colNum: "8", label: "Civilized", idxs: [7] },
+  { colNum: "9", label: "Builder", idxs: [8] },
+  { colNum: "11", label: "YY", idxs: [10] },
+  { colNum: "12", label: "XX", idxs: [11] },
+  { colNum: "13", label: "Platform", idxs: [12] },
+  { colNum: "14", label: "Mode", idxs: [13] },
+  { colNum: "15", label: "Release", idxs: [14] },
+  { colNum: "16", label: "Base Style", idxs: [15] },
+  { colNum: "17", label: "Farm?", idxs: [16] },
+  { colNum: "18", label: "Geobay?", idxs: [17] },
+  { colNum: "19", label: "Arena?", idxs: [18] },
+  { colNum: "20", label: "Landing Pad?", idxs: [19] },
+  { colNum: "21", label: "Racetrack?", idxs: [20] },
+  { colNum: "22", label: "Trade Terminal?", idxs: [21] },
+  { colNum: "23-27", label: "POI", idxs: [22, 23, 24, 25, 26] },
+  { colNum: "28", label: "Start Date", idxs: [27] },
+  { colNum: "29", label: "Finish Date", idxs: [28] },
+  { colNum: "30", label: "Survey Date", idxs: [29] },
+  { colNum: "31", label: "Surveyor", idxs: [30] },
+  { colNum: "32", label: "Summary Text", idxs: [31] },
+  { colNum: "33", label: "Layout", idxs: [32] },
+  { colNum: "34", label: "Notes", idxs: [33] },
+  { colNum: "35", label: "Power", idxs: [34] },
+  { colNum: "36", label: "Accessibility?", idxs: [35] },
+  { colNum: "37", label: "Mining?", idxs: [36] },
+  { colNum: "38", label: "Mine Capacity", idxs: [37] },
+  { colNum: "39", label: "Gas?", idxs: [38] },
+  { colNum: "40", label: "Gas Capacity", idxs: [39] },
+  { colNum: "41-48", label: "Base Parts", idxs: [40, 41, 42, 43, 44, 45, 46, 47] },
+  { colNum: "51", label: "Personal Notes", idxs: [50] },
+  { colNum: "52", label: "Base Type", idxs: [51] },
+  { colNum: "53", label: "Wiki Link", idxs: [52] },
+  { colNum: "56-59", label: "URL Links", idxs: [55, 56, 57, 58] },
+  { colNum: "60", label: "Deconstruction?", idxs: [59] }
+];
+
+const CUSTOM_COLUMN_ALL_INDICES = [
+  0, 1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15,
+  16, 17, 18, 19, 20, 21,
+  22, 23, 24, 25, 26, // 23-27 POI
+  27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39,
+  40, 41, 42, 43, 44, 45, 46, 47, // 41-48 Base Parts
+  50, 51, 52,
+  55, 56, 57, 58, // 56-59 URL Links
+  59
+];
+
+const FALLBACK_HEADERS: Record<number, string> = {
+  0: "Base Name", 1: "Planet Name", 2: "System Name", 3: "Region Name", 4: "Galaxy",
+  5: "Coordinates", 6: "Glyphs", 7: "Civilization", 8: "Builder", 10: "PVP",
+  11: "Attraction", 13: "Game Mode", 14: "Release", 15: "Base Style", 16: "Platform",
+  51: "Base Type", 52: "Wiki Link", 55: "Economy Status", 56: "Conflict Level",
+  57: "Hazards", 58: "Resources", 59: "Deconstruction"
+};
+
+const DICTIONARY: Record<string, Record<string, string>> = {
+  en: {
+    "AGT Base Report Tool": "AGT Base Report Tool",
+    "All Bases": "All Bases",
+    "Base Style": "Base Style",
+    "Base Type": "Base Type",
+    "Simple Report": "Simple Report",
+    "Detailed Report": "Detailed Report",
+    "Custom Report": "Custom Report",
+    "Select Civilization": "Select Civilization",
+    "Select Galaxy": "Select Galaxy",
+    "Enter Region": "Enter Region",
+    "Select Style": "Select Style",
+    "Select Type": "Select Type",
+    "Civilization Search...": "Civilization Search...",
+    "Galaxy Search...": "Galaxy Search...",
+    "Region Search...": "Region Search...",
+    "All Styles": "All Styles",
+    "All Types": "All Types",
+    "Survey Date Filter:": "Survey Date Filter:",
+    "Start:": "Start:",
+    "End:": "End:",
+    "Include Deconstructed Base Records?": "Include Deconstructed Base Records?",
+    "No": "No",
+    "Yes": "Yes",
+    "Extract Records": "Extract Records",
+    "Clear Filters": "Clear Filters",
+    "Data Access in Process - Please Wait": "Data Access in Process - Please Wait",
+    "Searching AGT Base Records": "Searching AGT Base Records",
+    "Settings Console": "Settings Console",
+    "Close": "Close",
+    "Source Identity": "Source Identity",
+    "Resync Database": "Resync Database",
+    "Font Scaling": "Font Scaling",
+    "default": "default",
+    "Records Per Page": "Records Per Page",
+    "Background AGT Anthem": "Background AGT Anthem",
+    "Language Selection": "Language Selection",
+    "Choose preferred interface language": "Choose preferred interface language",
+    "Custom Report Columns": "Custom Report Columns",
+    "Configure which columns appear in the Custom Report": "Configure which columns appear in the Custom Report",
+    "STATUS:": "STATUS:",
+    "SYNCING": "SYNCING",
+    "CONNECTED": "CONNECTED",
+    "DISCONNECTED": "DISCONNECTED",
+    "AGT Galactic Archives Results": "AGT Galactic Archives Results",
+    "FOUND": "FOUND",
+    "PDF Report": "PDF Report",
+    "Download CSV": "Download CSV",
+    "alliance_of_galactic_travellers": "Alliance of Galactic Travellers",
+    "Count:": "Count:",
+    "Criteria 1": "Criteria 1",
+    "Criteria 2": "Criteria 2",
+    "Criteria 3": "Criteria 3",
+    "Criteria 4": "Criteria 4",
+    "Verified Galactic Ledger Matches": "Verified Galactic Ledger Matches"
+  },
+  fr: {
+    "AGT Base Report Tool": "Outil de Rapport de Base AGT",
+    "All Bases": "Toutes les Bases",
+    "Base Style": "Style de Base",
+    "Base Type": "Type de Base",
+    "Simple Report": "Rapport Simple",
+    "Detailed Report": "Rapport Détaillé",
+    "Custom Report": "Rapport Personnalisé",
+    "Select Civilization": "Sélectionner la Civilisation",
+    "Select Galaxy": "Sélectionner la Galaxie",
+    "Enter Region": "Saisir la Région",
+    "Select Style": "Sélectionner le Style",
+    "Select Type": "Sélectionner le Type",
+    "Civilization Search...": "Recherche de Civilisation...",
+    "Galaxy Search...": "Recherche de Galaxie...",
+    "Region Search...": "Recherche de Région...",
+    "All Styles": "Tous les Styles",
+    "All Types": "Tous les Types",
+    "Survey Date Filter:": "Filtre de Date d'Enquête:",
+    "Start:": "Début:",
+    "End:": "Fin:",
+    "Include Deconstructed Base Records?": "Inclure les bases déconstruites ?",
+    "No": "Non",
+    "Yes": "Oui",
+    "Extract Records": "Extraire les Dossiers",
+    "Clear Filters": "Effacer les Filtres",
+    "Data Access in Process - Please Wait": "Accès aux Données en Cours - Veuillez Patienter",
+    "Searching AGT Base Records": "Recherche des Dossiers de Base AGT",
+    "Settings Console": "Console de Configuration",
+    "Close": "Fermer",
+    "Source Identity": "Identité Source",
+    "Resync Database": "Resynchroniser la Base de Données",
+    "Font Scaling": "Taille de la Police",
+    "default": "défaut",
+    "Records Per Page": "Enregistrements Par Page",
+    "Background AGT Anthem": "Hymne de l'AGT en Arrière-plan",
+    "Language Selection": "Sélection de la Langue",
+    "Choose preferred interface language": "Choisissez la langue de l'interface",
+    "Custom Report Columns": "Colonnes du Rapport Personnalisé",
+    "Configure which columns appear in the Custom Report": "Configurez les colonnes apparaissant dans le Rapport Personnalisé",
+    "STATUS:": "STATUT :",
+    "SYNCING": "SYNCHRONISATION",
+    "CONNECTED": "CONNECTÉ",
+    "DISCONNECTED": "DÉCONNECTÉ",
+    "AGT Galactic Archives Results": "Résultats des Archives Galactiques AGT",
+    "FOUND": "TROUVÉ",
+    "PDF Report": "Rapport PDF",
+    "Download CSV": "Télécharger le CSV",
+    "alliance_of_galactic_travellers": "Alliance des Voyageurs Galactiques",
+    "Count:": "Total :",
+    "Criteria 1": "Critère 1",
+    "Criteria 2": "Critère 2",
+    "Criteria 3": "Critère 3",
+    "Criteria 4": "Critère 4",
+    "Verified Galactic Ledger Matches": "Correspondances de registre galactique vérifiées"
+  },
+  es: {
+    "AGT Base Report Tool": "Herramienta de Reportes Base AGT",
+    "All Bases": "Todas las Bases",
+    "Base Style": "Estilo de Base",
+    "Base Type": "Tipo de Base",
+    "Simple Report": "Reporte Simple",
+    "Detailed Report": "Reporte Detallado",
+    "Custom Report": "Reporte Personalizado",
+    "Select Civilization": "Seleccionar Civilización",
+    "Select Galaxy": "Seleccionar Galaxia",
+    "Enter Region": "Ingresar Región",
+    "Select Style": "Seleccionar Estilo",
+    "Select Type": "Seleccionar Tipo",
+    "Civilization Search...": "Buscar Civilización...",
+    "Galaxy Search...": "Buscar Galaxia...",
+    "Region Search...": "Buscar Región...",
+    "All Styles": "Todos los Estilos",
+    "All Types": "Todos los Tipos",
+    "Survey Date Filter:": "Filtro de Fecha de Encuesta:",
+    "Start:": "Inicio:",
+    "End:": "Fin:",
+    "Include Deconstructed Base Records?": "¿Incluir registros de bases deconstruidas?",
+    "No": "No",
+    "Yes": "Sí",
+    "Extract Records": "Extraer Registros",
+    "Clear Filters": "Limpiar Filtros",
+    "Data Access in Process - Please Wait": "Acceso a Datos en Proceso - Por Favor Espere",
+    "Searching AGT Base Records": "Buscando Registros Base AGT",
+    "Settings Console": "Consola de Ajustes",
+    "Close": "Cerrar",
+    "Source Identity": "Identidad de Origen",
+    "Resync Database": "Resincronizar Base de Datos",
+    "Font Scaling": "Escalar Fuente",
+    "default": "predeterminado",
+    "Records Per Page": "Registros por Página",
+    "Background AGT Anthem": "Himno AGT de Fondo",
+    "Language Selection": "Selección de Idioma",
+    "Choose preferred interface language": "Elija el idioma de interfaz preferido",
+    "Custom Report Columns": "Columnas de Reporte Personalizado",
+    "Configure which columns appear in the Custom Report": "Configure qué columnas aparecen en el Reporte Personalizado",
+    "STATUS:": "ESTADO:",
+    "SYNCING": "SINCRONIZANDO",
+    "CONNECTED": "CONECTADO",
+    "DISCONNECTED": "DESCONECTADO",
+    "AGT Galactic Archives Results": "Resultados de Archivos Galácticos AGT",
+    "FOUND": "ENCONTRADOS",
+    "PDF Report": "Reporte PDF",
+    "Download CSV": "Descargar CSV",
+    "alliance_of_galactic_travellers": "Alianza de Viajeros Galácticos",
+    "Count:": "Total:",
+    "Criteria 1": "Criterio 1",
+    "Criteria 2": "Criterio 2",
+    "Criteria 3": "Criterio 3",
+    "Criteria 4": "Criterio 4",
+    "Verified Galactic Ledger Matches": "Coincidencias de registro galáctico verificadas"
+  },
+  it: {
+    "AGT Base Report Tool": "Strumento di Report Base AGT",
+    "All Bases": "Tutte le Basi",
+    "Base Style": "Stile Base",
+    "Base Type": "Tipo Base",
+    "Simple Report": "Report Semplice",
+    "Detailed Report": "Report Dettagliato",
+    "Custom Report": "Report Personalizzato",
+    "Select Civilization": "Seleziona Civiltà",
+    "Select Galaxy": "Seleziona Galassia",
+    "Enter Region": "Inserisci Regione",
+    "Select Style": "Seleziona Stile",
+    "Select Type": "Seleziona Tipo",
+    "Civilization Search...": "Cerca Civiltà...",
+    "Galaxy Search...": "Cerca Galassia...",
+    "Region Search...": "Cerca Regione...",
+    "All Styles": "Tutti gli Stili",
+    "All Types": "Tutti i Tipi",
+    "Survey Date Filter:": "Filtro Data Rilievo:",
+    "Start:": "Inizio:",
+    "End:": "Fine:",
+    "Include Deconstructed Base Records?": "Includere basi decostruite?",
+    "No": "No",
+    "Yes": "Sì",
+    "Extract Records": "Estrai Record",
+    "Clear Filters": "Cancella Filtri",
+    "Data Access in Process - Please Wait": "Accesso ai Dati in Corso - Attendere",
+    "Searching AGT Base Records": "Ricerca Registri Base AGT",
+    "Settings Console": "Console Impostazioni",
+    "Close": "Chiudi",
+    "Source Identity": "Identità Sorgente",
+    "Resync Database": "Risincronizza Database",
+    "Font Scaling": "Scala Caratteri",
+    "default": "predefinito",
+    "Records Per Page": "Record Per Pagina",
+    "Background AGT Anthem": "Inno AGT in Sottofondo",
+    "Language Selection": "Selezione Lingua",
+    "Choose preferred interface language": "Scegli la lingua dell'interfaccia preferita",
+    "Custom Report Columns": "Colonne del Report Personalizzato",
+    "Configure which columns appear in the Custom Report": "Configura quali colonne appaiono nel Report Personalizzato",
+    "STATUS:": "STATO:",
+    "SYNCING": "SINCRONIZZAZIONE",
+    "CONNECTED": "CONNESSO",
+    "DISCONNECTED": "DISCONNESSO",
+    "AGT Galactic Archives Results": "Risultati Archivi Galattici AGT",
+    "FOUND": "TROVATI",
+    "PDF Report": "Report PDF",
+    "Download CSV": "Scarica CSV",
+    "alliance_of_galactic_travellers": "Alleanza dei Viaggiatori Galattici",
+    "Count:": "Totale:",
+    "Criteria 1": "Criterio 1",
+    "Criteria 2": "Criterio 2",
+    "Criteria 3": "Criterio 3",
+    "Criteria 4": "Criterio 4",
+    "Verified Galactic Ledger Matches": "Corrispondenze registro galattico verificate"
+  },
+  de: {
+    "AGT Base Report Tool": "AGT-Basisberichtstool",
+    "All Bases": "Alle Basen",
+    "Base Style": "Basisstil",
+    "Base Type": "Basistyp",
+    "Simple Report": "Einfacher Bericht",
+    "Detailed Report": "Detaillierter Bericht",
+    "Custom Report": "Benutzerdefinierter Bericht",
+    "Select Civilization": "Zivilisation auswählen",
+    "Select Galaxy": "Galaxie auswählen",
+    "Enter Region": "Region eingeben",
+    "Select Style": "Stil auswählen",
+    "Select Type": "Typ auswählen",
+    "Civilization Search...": "Zivilisationssuche...",
+    "Galaxy Search...": "Galaxiesuche...",
+    "Region Search...": "Regionssuche...",
+    "All Styles": "Alle Stile",
+    "All Types": "Alle Typen",
+    "Survey Date Filter:": "Vermessungsdatum-Filter:",
+    "Start:": "Start:",
+    "End:": "Ende:",
+    "Include Deconstructed Base Records?": "Dekonstruierte Basen einschließen?",
+    "No": "Nein",
+    "Yes": "Ja",
+    "Extract Records": "Datensätze extrahieren",
+    "Clear Filters": "Filter löschen",
+    "Data Access in Process - Please Wait": "Datenzugriff läuft - Bitte warten",
+    "Searching AGT Base Records": "Suche in AGT-Basisdaten",
+    "Settings Console": "Einstellungen-Konsole",
+    "Close": "Schließen",
+    "Source Identity": "Datenquelle",
+    "Resync Database": "Datenbank resynchronisieren",
+    "Font Scaling": "Schriftskalierung",
+    "default": "Standard",
+    "Records Per Page": "Einträge pro Seite",
+    "Background AGT Anthem": "Hintergrund-AGT-Hymne",
+    "Language Selection": "Sprachauswahl",
+    "Choose preferred interface language": "Bevorzugte Benutzeroberflächensprache wählen",
+    "Custom Report Columns": "Benutzerdefinierte Berichtsspalten",
+    "Configure which columns appear in the Custom Report": "Konfigurieren Sie, welche Spalten im benutzerdefinierten Bericht angezeigt werden",
+    "STATUS:": "STATUS:",
+    "SYNCING": "SYNCHRONISIERUNG",
+    "CONNECTED": "VERBUNDEN",
+    "DISCONNECTED": "GETRENNT",
+    "AGT Galactic Archives Results": "Ergebnisse des AGT-Galaxiearchivs",
+    "FOUND": "GEFUNDEN",
+    "PDF Report": "PDF-Bericht",
+    "Download CSV": "CSV herunterladen",
+    "alliance_of_galactic_travellers": "Allianz der galaktischen Reisenden",
+    "Count:": "Gesamt:",
+    "Criteria 1": "Kriterium 1",
+    "Criteria 2": "Kriterium 2",
+    "Criteria 3": "Kriterium 3",
+    "Criteria 4": "Kriterium 4",
+    "Verified Galactic Ledger Matches": "Verifizierte galaktische Ledger-Übereinstimmungen"
+  },
+  pt: {
+    "AGT Base Report Tool": "Ferramenta de Relatório de Base AGT",
+    "All Bases": "Todas as Bases",
+    "Base Style": "Estilo da Base",
+    "Base Type": "Tipo de Base",
+    "Simple Report": "Relatório Simples",
+    "Detailed Report": "Relatório Detalhado",
+    "Custom Report": "Relatório Personalizado",
+    "Select Civilization": "Selecionar Civilização",
+    "Select Galaxy": "Selecionar Galáxia",
+    "Enter Region": "Inserir Região",
+    "Select Style": "Selecionar Estilo",
+    "Select Type": "Selecionar Tipo",
+    "Civilization Search...": "Buscar Civilização...",
+    "Galaxy Search...": "Buscar Galáxia...",
+    "Region Search...": "Buscar Região...",
+    "All Styles": "Todos os Estilos",
+    "All Types": "Todos os Tipos",
+    "Survey Date Filter:": "Filtro de Data de Pesquisa:",
+    "Start:": "Início:",
+    "End:": "Fim:",
+    "Include Deconstructed Base Records?": "Incluir registros de bases desconstruídas?",
+    "No": "Não",
+    "Yes": "Sim",
+    "Extract Records": "Extrair Registros",
+    "Clear Filters": "Limpar Filtros",
+    "Data Access in Process - Please Wait": "Acesso a Dados em Processamento - Por Favor, Aguarde",
+    "Searching AGT Base Records": "Buscando Registros de Base AGT",
+    "Settings Console": "Console de Configurações",
+    "Close": "Fechar",
+    "Source Identity": "Identidade de Origem",
+    "Resync Database": "Resincronizar Banco de Dados",
+    "Font Scaling": "Ajuste de Fonte",
+    "default": "padrão",
+    "Records Per Page": "Registros por Página",
+    "Background AGT Anthem": "Hino da AGT em Segundo Plano",
+    "Language Selection": "Seleção de Idioma",
+    "Choose preferred interface language": "Escolha o idioma de interface preferido",
+    "Custom Report Columns": "Colunas do Relatório Personalizado",
+    "Configure which columns appear in the Custom Report": "Configure quais colunas aparecem no Relatório Personalizado",
+    "STATUS:": "STATUS:",
+    "SYNCING": "SINCRONIZANDO",
+    "CONNECTED": "CONECTADO",
+    "DISCONNECTED": "DESCONECTADO",
+    "AGT Galactic Archives Results": "Resultados dos Arquivos Galácticos AGT",
+    "FOUND": "ENCONTRADOS",
+    "PDF Report": "Relatório PDF",
+    "Download CSV": "Baixar CSV",
+    "alliance_of_galactic_travellers": "Aliança de Viajantes Galácticos",
+    "Count:": "Total:",
+    "Criteria 1": "Critério 1",
+    "Criteria 2": "Critério 2",
+    "Criteria 3": "Critério 3",
+    "Criteria 4": "Critério 4",
+    "Verified Galactic Ledger Matches": "Correspondências do Registro Galáctico Verificadas"
+  },
+  hi: {
+    "AGT Base Report Tool": "AGT बेस रिपोर्ट टูล",
+    "All Bases": "सभी बेस",
+    "Base Style": "बेस शैली",
+    "Base Type": "बेस प्रकार",
+    "Simple Report": "सरल रिपोर्ट",
+    "Detailed Report": "विस्तृत रिपोर्ट",
+    "Custom Report": "कस्टम रिपोर्ट",
+    "Select Civilization": "सभ्यता चुनें",
+    "Select Galaxy": "आकाशगंगा चुनें",
+    "Enter Region": "क्षेत्र दर्ज करें",
+    "Select Style": "शैली चुनें",
+    "Select Type": "प्रकार चुनें",
+    "Civilization Search...": "सभ्यता खोज...",
+    "Galaxy Search...": "आकाशगंगा खोज...",
+    "Region Search...": "क्षेत्र खोज...",
+    "All Styles": "सभी शैलियां",
+    "All Types": "सभी प्रकार",
+    "Survey Date Filter:": "सर्वेक्षण तिथि फ़िल्टर:",
+    "Start:": "प्रारंभ:",
+    "End:": "समाप्त:",
+    "Include Deconstructed Base Records?": "विघटित बेस रिकॉर्ड शामिल करें?",
+    "No": "नहीं",
+    "Yes": "हाँ",
+    "Extract Records": "रिकॉर्ड निकालें",
+    "Clear Filters": "फ़िल्टर साफ़ करें",
+    "Data Access in Process - Please Wait": "डेटा एक्सेस जारी है - कृपया प्रतीक्षा करें",
+    "Searching AGT Base Records": "AGT बेस रिकॉर्ड खोजे जा रहे हैं",
+    "Settings Console": "सेटिंग्स कंसोल",
+    "Close": "बंद करें",
+    "Source Identity": "स्रोत पहचान",
+    "Resync Database": "डेटाबेस सिंक करें",
+    "Font Scaling": "फ़ॉन्ट स्केलिंग",
+    "default": "डिफ़ॉल्ट",
+    "Records Per Page": "प्रति पृष्ठ रिकॉर्ड",
+    "Background AGT Anthem": "बैकग्राउंड एजीटी गान",
+    "Language Selection": "भाषा चयन",
+    "Choose preferred interface language": "पसंदीदा इंटरफ़ेस भाषा चुनें",
+    "Custom Report Columns": "कस्टम रिपोर्ट कॉलम",
+    "Configure which columns appear in the Custom Report": "कस्टम रिपोर्ट में दिखाई देने वाले कॉलम कॉन्फ़िगर करें",
+    "STATUS:": "स्थिति:",
+    "SYNCING": "सिंक हो रहा है",
+    "CONNECTED": "कनेक्टेड",
+    "DISCONNECTED": "डिसकनेक्टेड",
+    "AGT Galactic Archives Results": "एजीटी गैलेक्टिक अभिलेखागार परिणाम",
+    "FOUND": "मिले",
+    "PDF Report": "पीडीएफ रिपोर्ट",
+    "Download CSV": "सीएसवी डाउनलोड करें",
+    "alliance_of_galactic_travellers": "आकाशगंगा यात्रियों का गठबंधन",
+    "Count:": "कुल संख्या:",
+    "Criteria 1": "मापदंड 1",
+    "Criteria 2": "मापदंड 2",
+    "Criteria 3": "मापदंड 3",
+    "Criteria 4": "मापदंड 4",
+    "Verified Galactic Ledger Matches": "सत्यापित गैलेक्टिक बहीखाता मिलान"
+  },
+  zh: {
+    "AGT Base Report Tool": "AGT 基地报告工具",
+    "All Bases": "所有基地",
+    "Base Style": "基地样式",
+    "Base Type": "基地类型",
+    "Simple Report": "简要报告",
+    "Detailed Report": "详细报告",
+    "Custom Report": "自定义报告",
+    "Select Civilization": "选择文明",
+    "Select Galaxy": "选择星系",
+    "Enter Region": "输入区域",
+    "Select Style": "选择样式",
+    "Select Type": "选择类型",
+    "Civilization Search...": "文明搜索...",
+    "Galaxy Search...": "星系搜索...",
+    "Region Search...": "区域搜索...",
+    "All Styles": "所有样式",
+    "All Types": "所有类型",
+    "Survey Date Filter:": "调查日期筛选:",
+    "Start:": "开始:",
+    "End:": "结束:",
+    "Include Deconstructed Base Records?": "包含已拆除的基地记录吗？",
+    "No": "否",
+    "Yes": "是",
+    "Extract Records": "提取记录",
+    "Clear Filters": "清除筛选",
+    "Data Access in Process - Please Wait": "数据访问中 - 请稍候",
+    "Searching AGT Base Records": "正在搜索 AGT 基地记录",
+    "Settings Console": "设置控制台",
+    "Close": "关闭",
+    "Source Identity": "源身份",
+    "Resync Database": "重新同步数据库",
+    "Font Scaling": "字体微调",
+    "default": "默认",
+    "Records Per Page": "每页记录",
+    "Background AGT Anthem": "背景 AGT 颂歌",
+    "Language Selection": "语言选择",
+    "Choose preferred interface language": "选择首选界面语言",
+    "Custom Report Columns": "自定义报告列",
+    "Configure which columns appear in the Custom Report": "配置自定义报告中显示的列",
+    "STATUS:": "状态:",
+    "SYNCING": "同步中",
+    "CONNECTED": "已连接",
+    "DISCONNECTED": "未连接",
+    "AGT Galactic Archives Results": "AGT 星际档案馆结果",
+    "FOUND": "找到",
+    "PDF Report": "PDF 报告",
+    "Download CSV": "下载 CSV",
+    "alliance_of_galactic_travellers": "星际旅行者联盟",
+    "Count:": "计数:",
+    "Criteria 1": "条件 1",
+    "Criteria 2": "条件 2",
+    "Criteria 3": "条件 3",
+    "Criteria 4": "条件 4",
+    "Verified Galactic Ledger Matches": "已验证的银河分类帐匹配"
+  },
+  ja: {
+    "AGT Base Report Tool": "AGT 基地レポートツール",
+    "All Bases": "すべての基地",
+    "Base Style": "基地スタイル",
+    "Base Type": "基地タイプ",
+    "Simple Report": "簡易レポート",
+    "Detailed Report": "詳細レポート",
+    "Custom Report": "カスタムレポート",
+    "Select Civilization": "文明を選択",
+    "Select Galaxy": "銀河を選択",
+    "Enter Region": "領域を入力",
+    "Select Style": "スタイルを選択",
+    "Select Type": "タイプを選択",
+    "Civilization Search...": "文明を検索...",
+    "Galaxy Search...": "銀河を検索...",
+    "Region Search...": "領域を検索...",
+    "All Styles": "すべてのスタイル",
+    "All Types": "すべてのタイプ",
+    "Survey Date Filter:": "調査日フィルター:",
+    "Start:": "開始:",
+    "End:": "終了:",
+    "Include Deconstructed Base Records?": "解体された基地の記録を含める？",
+    "No": "いいえ",
+    "Yes": "はい",
+    "Extract Records": "レコード抽出",
+    "Clear Filters": "フィルター解除",
+    "Data Access in Process - Please Wait": "データ取得中 - しばらくお待ちください",
+    "Searching AGT Base Records": "AGT 基地データを検索中",
+    "Settings Console": "設定コンソール",
+    "Close": "閉じる",
+    "Source Identity": "ソース識別子",
+    "Resync Database": "データベースを再同期",
+    "Font Scaling": "フォント調整",
+    "default": "デフォルト",
+    "Records Per Page": "ページあたりの行数",
+    "Background AGT Anthem": "AGT 賛歌ループ",
+    "Language Selection": "言語設定",
+    "Choose preferred interface language": "インターフェース表示言語を選択",
+    "Custom Report Columns": "カスタムレポート表示項目",
+    "Configure which columns appear in the Custom Report": "カスタムレポートに表示する列を構成します",
+    "STATUS:": "ステータス:",
+    "SYNCING": "同期中",
+    "CONNECTED": "接続完了",
+    "DISCONNECTED": "未接続",
+    "AGT Galactic Archives Results": "AGT 銀河アーカイブ検索結果",
+    "FOUND": "件見つかりました",
+    "PDF Report": "PDFレポート",
+    "Download CSV": "CSVダウンロード",
+    "alliance_of_galactic_travellers": "銀河トラベラー同盟",
+    "Count:": "カウント:",
+    "Criteria 1": "条件 1",
+    "Criteria 2": "条件 2",
+    "Criteria 3": "条件 3",
+    "Criteria 4": "条件 4",
+    "Verified Galactic Ledger Matches": "検証済みの銀河元帳一致"
+  },
+  th: {
+    "AGT Base Report Tool": "เครื่องมือรายงานฐานข้อมูล AGT",
+    "All Bases": "ฐานข้อมูลทั้งหมด",
+    "Base Style": "สไตล์ฐานข้อมูล",
+    "Base Type": "ประเภทฐานข้อมูล",
+    "Simple Report": "รายงานแบบธรรมดา",
+    "Detailed Report": "รายงานแบบละเอียด",
+    "Custom Report": "รายงานแบบกำหนดเอง",
+    "Select Civilization": "เลือกอารยธรรม",
+    "Select Galaxy": "เลือกกาแล็กซี",
+    "Enter Region": "กรอกภูมิภาค",
+    "Select Style": "เลือกสไตล์",
+    "Select Type": "เลือกประเภท",
+    "Civilization Search...": "ค้นหาอารยธรรม...",
+    "Galaxy Search...": "ค้นหากาแล็กซี...",
+    "Region Search...": "ค้นหาภูมิภาค...",
+    "All Styles": "สไตล์ทั้งหมด",
+    "All Types": "ประเภททั้งหมด",
+    "Survey Date Filter:": "ตัวกรองวันที่สำรวจ:",
+    "Start:": "เริ่มต้น:",
+    "End:": "สิ้นสุด:",
+    "Include Deconstructed Base Records?": "รวมข้อมูลฐานที่ถูกรื้อถอนหรือไม่?",
+    "No": "ไม่รวม",
+    "Yes": "รวม",
+    "Extract Records": "ดึงข้อมูลบันทึก",
+    "Clear Filters": "ล้างตัวกรอง",
+    "Data Access in Process - Please Wait": "กำลังดาวน์โหลดข้อมูล - โปรดรอสักครู่",
+    "Searching AGT Base Records": "กำลังค้นหารายงานฐานข้อมูล AGT",
+    "Settings Console": "แผงควบคุมการตั้งค่า",
+    "Close": "ปิด",
+    "Source Identity": "เอกลักษณ์แหล่งข้อมูล",
+    "Resync Database": "ซิงค์ฐานข้อมูลใหม่",
+    "Font Scaling": "ขนาดตัวอักษร",
+    "default": "ค่าเริ่มต้น",
+    "Records Per Page": "จำนวนรายการต่อหน้า",
+    "Background AGT Anthem": "เพลงสรรเสริญ AGT เบื้องหลัง",
+    "Language Selection": "เลือกภาษา",
+    "Choose preferred interface language": "เลือกภาษาของอินเทอร์เฟซที่ต้องการ",
+    "Custom Report Columns": "คอลัมน์รายงานที่กำหนดเอง",
+    "Configure which columns appear in the Custom Report": "ตั้งค่าคอลัมน์ที่จะให้แสดงในรายงานแบบกำหนดเอง",
+    "STATUS:": "สถานะ:",
+    "SYNCING": "กำลังซิงค์",
+    "CONNECTED": "เชื่อมต่อแล้ว",
+    "DISCONNECTED": "ตัดการเชื่อมต่อ",
+    "AGT Galactic Archives Results": "ผลการค้นหาจากจดหมายเหตุอวกาศ AGT",
+    "FOUND": "รายการที่พบ",
+    "PDF Report": "รายงาน PDF",
+    "Download CSV": "ดาวน์โหลด CSV",
+    "alliance_of_galactic_travellers": "สมาคมนักสำรวจอวกาศ",
+    "Count:": "จำนวนทั้งหมด:",
+    "Criteria 1": "เกณฑ์ความต้องการ 1",
+    "Criteria 2": "เกณฑ์ความต้องการ 2",
+    "Criteria 3": "เกณฑ์ความต้องการ 3",
+    "Criteria 4": "เกณฑ์ความต้องการ 4",
+    "Verified Galactic Ledger Matches": "จับคู่แยกประเภทกาแล็กซีที่ตรวจสอบแล้ว"
+  }
+};
 
 const CIV_ACRONYMS: Record<string, string> = {
   'Alliance of Galactic Travellers': 'AGT',
@@ -99,6 +819,33 @@ const getDisplayValue = (val: any, colIdx?: number) => {
 };
 
 export default function App() {
+  const [lang, setLang] = useState<string>(() => {
+    return localStorage.getItem('agt_lang') || 'en';
+  });
+
+  const [customEnabledIndices, setCustomEnabledIndices] = useState<number[]>(() => {
+    const saved = localStorage.getItem('agt_custom_cols');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {}
+    }
+    return [0, 1, 2, 3, 4, 5, 7, 8, 14, 15, 51, 52, 59];
+  });
+
+  const t = (key: string): string => {
+    return DICTIONARY[lang]?.[key] || DICTIONARY['en']?.[key] || key;
+  };
+
+  const [data, setData] = useState<any[]>([]);
+  const [columns, setColumns] = useState<ColumnConfig[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [matchedRecords, setMatchedRecords] = useState<any[]>([]);
+  const [searchKey, setSearchKey] = useState('');
+  const [selectedGalaxy, setSelectedGalaxy] = useState('All');
+  const [selectedRegion, setSelectedRegion] = useState('All');
+
   const [reportType, setReportType] = useState<ReportType>('simple');
   const [logoSrc, setLogoSrc] = useState<string>('/AGTicon.png');
   const [planetCategory, setPlanetCategory] = useState<PlanetCategory>('all');
@@ -122,12 +869,75 @@ export default function App() {
     return saved;
   });
   const [showSettings, setShowSettings] = useState(false);
+  const [pdfError, setPdfError] = useState<string | null>(null);
+  
+  // Background audio is muted by default (saved === 'true' only)
   const [audioEnabled, setAudioEnabled] = useState<boolean>(() => {
     const saved = localStorage.getItem('agt_audio_enabled');
-    return saved === null ? true : saved === 'true';
+    return saved === 'true';
   });
   
+  // Font scaling factor state
+  const [fontScale, setFontScale] = useState<string>(() => {
+    return localStorage.getItem('agt_font_scale') || '1x';
+  });
+
+  // Survey range date states
+  const [startDate, setStartDate] = useState<string>('');
+  const [endDate, setEndDate] = useState<string>('');
+
+  // Extract reports loading spinner overlay
+  const [showExtractorSpinner, setShowExtractorSpinner] = useState(false);
+
+  // Cache ref for sheet headers lookup
+  const headersCache = useRef<string[]>([]);
+  
   const audioRef = useRef<HTMLAudioElement>(null);
+
+  // Apply Font Scaling Factor across the entire application
+  useEffect(() => {
+    let scalePct = '100%';
+    if (fontScale === '1.5x') scalePct = '150%';
+    else if (fontScale === '2x') scalePct = '200%';
+    else if (fontScale === '2.5x') scalePct = '250%';
+    else if (fontScale === '3x') scalePct = '300%';
+    document.documentElement.style.fontSize = scalePct;
+    localStorage.setItem('agt_font_scale', fontScale);
+  }, [fontScale]);
+
+  // Dynamic predictive options retrieved from current data log entries
+  const uniqueCivilizations = useMemo(() => {
+    const s = new Set<string>(CIVILIZATIONS);
+    data.forEach(row => {
+      const v = String(row._raw?.[7] || '').trim();
+      if (v && v.toLowerCase() !== 'null' && v.toLowerCase() !== '#n/a') {
+        s.add(v);
+      }
+    });
+    return Array.from(s).sort();
+  }, [data]);
+
+  const uniqueGalaxies = useMemo(() => {
+    const s = new Set<string>(GALAXIES);
+    data.forEach(row => {
+      const v = String(row._raw?.[4] || '').trim();
+      if (v && v.toLowerCase() !== 'null' && v.toLowerCase() !== '#n/a') {
+        s.add(v);
+      }
+    });
+    return Array.from(s).sort();
+  }, [data]);
+
+  const uniqueRegions = useMemo(() => {
+    const s = new Set<string>();
+    data.forEach(row => {
+      const v = String(row._raw?.[3] || '').trim();
+      if (v && v.toLowerCase() !== 'null' && v.toLowerCase() !== '#n/a') {
+        s.add(v);
+      }
+    });
+    return Array.from(s).sort();
+  }, [data]);
 
   // Initial fetch
   useEffect(() => {
@@ -183,14 +993,7 @@ export default function App() {
     return saved ? parseInt(saved, 10) : 15;
   });
 
-  const [searchKey, setSearchKey] = useState('');
-  const [selectedGalaxy, setSelectedGalaxy] = useState('All');
-  const [selectedRegion, setSelectedRegion] = useState('All');
-  const [data, setData] = useState<any[]>([]);
-  const [columns, setColumns] = useState<ColumnConfig[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [matchedRecords, setMatchedRecords] = useState<any[]>([]);
+
 
   // Save sheet URL to localStorage
   useEffect(() => {
@@ -247,6 +1050,7 @@ export default function App() {
           }
 
           const headers = rawRows[1]; // Row 2 is headers
+          headersCache.current = headers;
           
           // Simple Columns: A, B, C, D, E, F, H, I, O, P, AZ, BA, BH (Indices: 0, 1, 2, 3, 4, 5, 7, 8, 14, 15, 51, 52, 59)
           const simpleIndices = [0, 1, 2, 3, 4, 5, 7, 8, 14, 15, 51, 52, 59];
@@ -259,11 +1063,11 @@ export default function App() {
             55, 56, 57, 58, 59
           ];
           
-          const targetIndexes = reportType === 'simple' ? simpleIndices : detailedIndices;
+          const targetIndexes = reportType === 'simple' ? simpleIndices : (reportType === 'detailed' ? detailedIndices : CUSTOM_COLUMN_ALL_INDICES);
           
           const filteredColumns = targetIndexes.map(idx => ({
             name: headers[idx] || `Col ${String.fromCharCode(65 + (idx % 26))}${idx >= 26 ? String.fromCharCode(65 + Math.floor(idx / 26) - 1) : ''}`,
-            enabled: true,
+            enabled: reportType === 'custom' ? customEnabledIndices.includes(idx) : true,
             rawIndex: idx
           }));
           
@@ -284,9 +1088,9 @@ export default function App() {
               
               // Ignore any rows with #N/A in column C, Column D, or Column E.
               if (
-                colC.toUpperCase().includes('#N/A') || 
-                colD.toUpperCase().includes('#N/A') || 
-                colE.toUpperCase().includes('#N/A')
+                 colC.toUpperCase().includes('#N/A') || 
+                 colD.toUpperCase().includes('#N/A') || 
+                 colE.toUpperCase().includes('#N/A')
               ) return false;
               
               return true;
@@ -319,7 +1123,9 @@ export default function App() {
             currentC, 
             currentStyle, 
             currentType, 
-            currentDeconstructed
+            currentDeconstructed,
+            startDate,
+            endDate
           );
           setLoading(false);
         },
@@ -335,11 +1141,15 @@ export default function App() {
   };
 
   const handleSearch = () => {
-    if (!data.length) {
-      fetchData();
-    } else {
-      findRecord(data, columns);
-    }
+    setShowExtractorSpinner(true);
+    setTimeout(() => {
+      setShowExtractorSpinner(false);
+      if (!data.length) {
+        fetchData();
+      } else {
+        findRecord(data, columns);
+      }
+    }, 1500);
   };
 
   const findRecord = (
@@ -351,7 +1161,9 @@ export default function App() {
     catTerm?: PlanetCategory, 
     styleTerm?: string,
     typeTerm?: string,
-    includeDeconstructedToggle?: boolean
+    includeDeconstructedToggle?: boolean,
+    surveyStart?: string,
+    surveyEnd?: string
   ) => {
     const rawCivTerm = (civTerm ?? searchKey).trim();
     const currentCivTerm = rawCivTerm.toLowerCase();
@@ -361,15 +1173,19 @@ export default function App() {
     const currentStyleTerm = (styleTerm ?? selectedStyle).trim().toLowerCase();
     const currentTypeTerm = (typeTerm ?? selectedType).trim().toLowerCase();
     const currentIncludeDeconstructed = includeDeconstructedToggle ?? includeDeconstructed;
+    const sStart = surveyStart !== undefined ? surveyStart : startDate;
+    const sEnd = surveyEnd !== undefined ? surveyEnd : endDate;
     
     if (
-      !currentCivTerm && 
+      (!currentCivTerm || currentCivTerm === 'all') && 
       currentGalTerm === 'all' && 
       currentRegTerm === 'all' && 
       currentCatTerm === 'all' && 
       currentStyleTerm === 'all' && 
       currentTypeTerm === 'all' && 
       currentIncludeDeconstructed && 
+      !sStart &&
+      !sEnd &&
       !sourceCols.length
     ) return;
 
@@ -389,7 +1205,7 @@ export default function App() {
       const civVal = String(rawRow[7] || '').trim().toLowerCase();
       
       // Handle "All" selection
-      let civMatch = currentCivTerm === 'all' || !currentCivTerm;
+      let civMatch = currentCivTerm === 'all' || !currentCivTerm || currentCivTerm === '';
 
       if (!civMatch) {
         // Try matching the full term or any known acronyms
@@ -442,7 +1258,37 @@ export default function App() {
         }
       }
 
-      return civMatch && galMatch && regMatch && categoryMatch && deconstructedMatch;
+      // Date of Survey match
+      let dateMatch = true;
+      if (headersCache.current && headersCache.current.length > 0) {
+        const surveyDateIdx = headersCache.current.findIndex(h => h && h.trim().toLowerCase() === 'date of survey');
+        if (surveyDateIdx !== -1) {
+          const surveyDateVal = String(rawRow[surveyDateIdx] || '').trim();
+          if (surveyDateVal) {
+            const recordDate = new Date(surveyDateVal);
+            if (!isNaN(recordDate.getTime())) {
+              if (sStart) {
+                const sDate = new Date(sStart);
+                if (!isNaN(sDate.getTime()) && recordDate < sDate) {
+                  dateMatch = false;
+                }
+              }
+              if (sEnd) {
+                const eDate = new Date(sEnd);
+                if (!isNaN(eDate.getTime()) && recordDate > eDate) {
+                  dateMatch = false;
+                }
+              }
+            } else if (sStart || sEnd) {
+              dateMatch = false;
+            }
+          } else if (sStart || sEnd) {
+            dateMatch = false;
+          }
+        }
+      }
+
+      return civMatch && galMatch && regMatch && categoryMatch && deconstructedMatch && dateMatch;
     });
 
 
@@ -521,48 +1367,214 @@ export default function App() {
   const downloadFullReportPdf = () => {
     if (matchedRecords.length === 0) return;
 
+    const activeCols = columns.filter(col => col.enabled);
+
+    const totalUsableWidth = 277; // 297mm - 20mm margins
+
+    // Temporary document/text setup for exact font dimensions and line splitting
+    const dummyDoc = new jsPDF('l', 'mm', 'a4');
+    dummyDoc.setFont("Helvetica", "normal");
+    dummyDoc.setFontSize(6.5);
+
+    // Helper to calculate minimum width for a cell to wrap to at most targetLines (e.g. 2 lines)
+    const getCellMinWidthForLines = (text: string, isHeader: boolean, targetLines = 2, cellPadding = 1.2) => {
+      const cleanText = text || '';
+      dummyDoc.setFont("Helvetica", isHeader ? "bold" : "normal");
+      dummyDoc.setFontSize(6.5);
+      const textWidth = dummyDoc.getTextWidth(cleanText);
+      const internalPadding = cellPadding * 2;
+      
+      const singleLineWidth = textWidth + internalPadding;
+      
+      // Binary search for minimum required column width to fit content in <= targetLines
+      let low = 8; // absolute min column width in mm
+      let high = Math.max(8, singleLineWidth);
+      let best = high;
+      
+      while (low <= high) {
+        const mid = (low + high) / 2;
+        const maxTextWidth = mid - internalPadding;
+        if (maxTextWidth <= 0) {
+          low = mid + 0.1;
+          continue;
+        }
+        const lines = dummyDoc.splitTextToSize(cleanText, maxTextWidth);
+        if (lines.length <= targetLines) {
+          best = mid;
+          high = mid - 0.1;
+        } else {
+          low = mid + 0.1;
+        }
+      }
+      return best;
+    };
+
+    const getIdealWidth = (text: string, isHeader: boolean, cellPadding = 1.2) => {
+      const cleanText = text || '';
+      dummyDoc.setFont("Helvetica", isHeader ? "bold" : "normal");
+      dummyDoc.setFontSize(6.5);
+      return Math.max(8, dummyDoc.getTextWidth(cleanText) + cellPadding * 2);
+    };
+
+    const tempUrlMap = new Map<string, string>();
+    const tempTableData = matchedRecords.map((record, rIdx) => 
+      activeCols.map((col, cIdx) => {
+        const rawVal = record[col.name];
+        const val = getDisplayValue(rawVal, col.rawIndex);
+        
+        if (String(rawVal || '').startsWith('http')) {
+          tempUrlMap.set(`${rIdx}-${cIdx}`, String(rawVal));
+          return 'LINK';
+        }
+        return val || '-';
+      })
+    );
+
+    // Add total row to temporary table representation
+    const countFieldName = columns[0]?.name;
+    const tempTotalRow = activeCols.map(col => {
+      if (col.name === countFieldName) return `Count: ${matchedRecords.length}`;
+      return '';
+    });
+    tempTableData.push(tempTotalRow);
+
+    // Calculate minimum required widths and ideal widths for all columns
+    const minWidths = activeCols.map((col, cIdx) => {
+      // Analyze header
+      let colMin = getCellMinWidthForLines(col.name, true, 2);
+      // Analyze body rows + total row
+      for (let rIdx = 0; rIdx < tempTableData.length; rIdx++) {
+        const cellText = tempTableData[rIdx][cIdx];
+        const cellMin = getCellMinWidthForLines(cellText, false, 2);
+        if (cellMin > colMin) {
+          colMin = cellMin;
+        }
+      }
+      return colMin;
+    });
+
+    const idealWidths = activeCols.map((col, cIdx) => {
+      // Analyze header
+      let colIdeal = getIdealWidth(col.name, true);
+      // Analyze body rows + total row
+      for (let rIdx = 0; rIdx < tempTableData.length; rIdx++) {
+        const cellText = tempTableData[rIdx][cIdx];
+        const cellIdeal = getIdealWidth(cellText, false);
+        if (cellIdeal > colIdeal) {
+          colIdeal = cellIdeal;
+        }
+      }
+      return colIdeal;
+    });
+
+    const sumMinW = minWidths.reduce((sum, w) => sum + w, 0);
+
+    // Custom report check for column limits
+    if (sumMinW > totalUsableWidth) {
+      if (reportType === 'custom') {
+        setPdfError("Too many columns for PDF layout");
+        return; // Abort PDF generation!
+      }
+    }
+
+    // Now calculate the actual column widths to minimize line wrapping
+    const finalWidths: number[] = [];
+    if (sumMinW > totalUsableWidth) {
+      // Scale everything down to fit perfectly within totalUsableWidth (only for non-custom reports that exceed)
+      const scale = totalUsableWidth / sumMinW;
+      minWidths.forEach(w => {
+        finalWidths.push(w * scale);
+      });
+    } else {
+      // We have leftover space! Let's distribute it beautifully.
+      const leftover = totalUsableWidth - sumMinW;
+      let sumDiff = 0;
+      const diffs = minWidths.map((w, idx) => {
+        const d = Math.max(0, idealWidths[idx] - w);
+        sumDiff += d;
+        return d;
+      });
+
+      if (sumDiff > 0) {
+        minWidths.forEach((w, idx) => {
+          const extra = leftover * (diffs[idx] / sumDiff);
+          finalWidths.push(w + extra);
+        });
+      } else {
+        // If everything is already at single-line ideal width, distribute proportionally to minWidths
+        minWidths.forEach(w => {
+          const extra = leftover * (w / sumMinW);
+          finalWidths.push(w + extra);
+        });
+      }
+    }
+
     const doc = new jsPDF('l', 'mm', 'a4'); // Landscape for tables
     const displayId = searchKey || 'Bulk';
     
-    doc.setFontSize(22);
-    doc.text(`AGT Base Report`, 10, 20);
-    
-    doc.setFontSize(10);
-    let categoryRefText = planetCategory.toUpperCase();
-    if (planetCategory === 'style') {
-      categoryRefText = `STYLE (${selectedStyle})`;
-    } else if (planetCategory === 'type') {
-      categoryRefText = `TYPE (${selectedType})`;
-    }
-    doc.text(`Extraction Ref: ${searchKey || 'All'} / ${selectedGalaxy} / ${selectedRegion} / ${categoryRefText}`, 10, 30);
-    doc.text(`Generated on: ${new Date().toLocaleString()}`, 10, 35);
-    doc.text(`Result Count: ${matchedRecords.length} Verified Entries`, 10, 40);
-
-    // Embed AGT Logo on page 1, right of the report summary introduction text (aligned to 10mm right margin)
-    const logoImg = document.querySelector('img[alt="AGT Logo"]') as HTMLImageElement;
-    if (logoImg) {
+    // Draw logo helper for multiple pages
+    const drawLogoOnDoc = (pdfDoc: any, x: number, y: number, w: number, h: number) => {
       try {
-        if (logoImg.complete && logoImg.naturalWidth > 0) {
-          doc.addImage(logoImg, 'PNG', 262, 15, 25, 25, undefined, 'FAST');
+        const logoImg = document.querySelector('img[alt="AGT Logo"]') as HTMLImageElement;
+        if (logoImg && logoImg.complete && logoImg.naturalWidth > 0) {
+          pdfDoc.addImage(logoImg, 'PNG', x, y, w, h, undefined, 'FAST');
         } else {
           const tempImg = new Image();
           tempImg.src = logoSrc;
-          doc.addImage(tempImg, 'PNG', 262, 15, 25, 25, undefined, 'FAST');
+          pdfDoc.addImage(tempImg, 'PNG', x, y, w, h, undefined, 'FAST');
         }
       } catch (err) {
         console.error('Failed to add logo image to PDF:', err);
       }
-    } else {
-      try {
-        const tempImg = new Image();
-        tempImg.src = logoSrc;
-        doc.addImage(tempImg, 'PNG', 262, 15, 25, 25, undefined, 'FAST');
-      } catch (err) {
-        console.error('Failed to add fallback logo image to PDF:', err);
-      }
+    };
+
+    // 1. Cover Page
+    // Centered image about 20% from top of A4 Landscape (210mm height * 0.20 = 42mm)
+    const coverLogoWidth = 32;
+    const coverLogoHeight = 32;
+    const coverCenterX = (doc.internal.pageSize.width - coverLogoWidth) / 2;
+    drawLogoOnDoc(doc, coverCenterX, 38, coverLogoWidth, coverLogoHeight);
+
+    // Below it: Title "AGT Base Report" in hex color E25530
+    doc.setFont("Helvetica", "bold");
+    doc.setFontSize(26);
+    doc.setTextColor(226, 85, 48); // hex #E25530
+    doc.text("AGT Base Report", doc.internal.pageSize.width / 2, 85, { align: "center" });
+
+    // Header horizontal line in theme color #FF0500
+    doc.setDrawColor(255, 5, 0);
+    doc.setLineWidth(0.6);
+    doc.line(30, 94, doc.internal.pageSize.width - 30, 94);
+
+    // Below horizontal divider: Filter options
+    doc.setFont("Helvetica", "normal");
+    doc.setFontSize(10);
+    doc.setTextColor(0, 0, 0);
+
+    let coverY = 105;
+    const coverLineHeight = 7;
+
+    const civFilterVal = searchKey && searchKey !== 'All' ? searchKey : 'All';
+    doc.text(`Civilization: ${civFilterVal}`, 50, coverY); coverY += coverLineHeight;
+    doc.text(`Galaxy: ${selectedGalaxy || 'All'}`, 50, coverY); coverY += coverLineHeight;
+    doc.text(`Region: ${selectedRegion || 'All'}`, 50, coverY); coverY += coverLineHeight;
+
+    if (planetCategory === 'style' && selectedStyle !== 'All') {
+      doc.text(`Base Style: ${selectedStyle}`, 50, coverY); coverY += coverLineHeight;
+    } else if (planetCategory === 'type' && selectedType !== 'All') {
+      doc.text(`Base Type: ${selectedType}`, 50, coverY); coverY += coverLineHeight;
     }
+
+    const surveyRangeStr = startDate || endDate ? `${startDate || 'Open'} to ${endDate || 'Open'}` : 'All';
+    doc.text(`Survey Date Range: ${surveyRangeStr}`, 50, coverY); coverY += coverLineHeight;
+    doc.text(`Deconstructed base record included: ${includeDeconstructed ? 'yes' : 'no'}`, 50, coverY); coverY += coverLineHeight;
+
+    // Report creation date line "Report Date:" <today's system date>
+    doc.text(`Report Date: ${new Date().toLocaleDateString()}`, 50, coverY);
+
+    // Add page break to hold table data starting on Page 2
+    doc.addPage();
     
-    const activeCols = columns.filter(col => col.enabled);
     const urlMap = new Map<string, string>();
     
     const tableData = matchedRecords.map((record, rIdx) => 
@@ -579,77 +1591,33 @@ export default function App() {
     );
 
     // Add total row to PDF
-    const countFieldName = columns[0]?.name;
     const totalRow = activeCols.map(col => {
       if (col.name === countFieldName) return `Count: ${matchedRecords.length}`;
       return '';
     });
     tableData.push(totalRow);
 
-    // Map custom widths for columns so they do not break across lines
     const colStyles: Record<number, { cellWidth: number }> = {};
     activeCols.forEach((col, idx) => {
-      let width = 20; // default backup
-      switch (col.rawIndex) {
-        case 0: // Base Name
-          width = 30;
-          break;
-        case 1: // Planet
-          width = 18;
-          break;
-        case 2: // System
-          width = 18;
-          break;
-        case 3: // Region (must increase)
-          width = 28;
-          break;
-        case 4: // Galaxy (must increase)
-          width = 22;
-          break;
-        case 5: // Coordinates (must increase)
-          width = 28;
-          break;
-        case 7: // Civilized
-          width = 22;
-          break;
-        case 8: // Builder
-          width = 18;
-          break;
-        case 14: // Release (must increase)
-          width = 20;
-          break;
-        case 15: // Base Style (must increase)
-          width = 22;
-          break;
-        case 51: // Base Type (must increase)
-          width = 22;
-          break;
-        case 52: // Wiki Link (must increase)
-          width = 16;
-          break;
-        case 59: // Deconstruction? (very narrow index)
-          width = 11;
-          break;
-        default:
-          width = 20;
-      }
-      colStyles[idx] = { cellWidth: width };
+      colStyles[idx] = { cellWidth: finalWidths[idx] };
     });
 
     autoTable(doc, {
-      startY: 50,
+      startY: 22,
       head: [activeCols.map(col => col.name)],
       body: tableData,
       theme: 'grid',
-      styles: { cellPadding: 1.5, fontSize: 7, overflow: 'linebreak' },
-      headStyles: { fillColor: [20, 20, 20], textColor: [255, 255, 255], fontSize: 7 },
-      bodyStyles: { fontSize: 7 },
-      footStyles: { fillColor: [240, 240, 240], textColor: [0, 0, 0], fontStyle: 'bold', fontSize: 7 },
-      margin: { top: 50, left: 10, right: 10 },
+      styles: { cellPadding: 1.2, fontSize: 6.5, overflow: 'linebreak' },
+      headStyles: { fillColor: [240, 240, 240], textColor: [0, 0, 0], fontSize: 6.5, fontStyle: 'bold' },
+      bodyStyles: { fontSize: 6.5, textColor: [0, 0, 0], fillColor: [255, 255, 255] },
+      alternateRowStyles: { fillColor: [255, 255, 255] },
+      footStyles: { fillColor: [255, 255, 255], textColor: [0, 0, 0], fontStyle: 'bold', fontSize: 6.5 },
+      margin: { top: 22, left: 10, right: 10, bottom: 16 },
       columnStyles: colStyles,
       didParseCell: (data) => {
         if (data.row.index === tableData.length - 1) {
-          data.cell.styles.fillColor = [220, 220, 220];
+          data.cell.styles.fillColor = [255, 255, 255];
+          data.cell.styles.textColor = [0, 0, 0];
           data.cell.styles.fontStyle = 'bold';
         }
         
@@ -664,11 +1632,44 @@ export default function App() {
         if (url && data.section === 'body') {
           doc.link(data.cell.x, data.cell.y, data.cell.width, data.cell.height, { url });
         }
+      },
+      didDrawPage: (data) => {
+        const pageNum = doc.getNumberOfPages();
+        if (pageNum === 1) return; // Skip cover page headers
+
+        // Page Header
+        drawLogoOnDoc(doc, 10, 6, 8, 8);
+        doc.setFont("Helvetica", "normal");
+        doc.setFontSize(8.5);
+        doc.setTextColor(0, 0, 0);
+        const headerText = `AGT Base Report - Civ: ${civFilterVal} / Galaxy: ${selectedGalaxy || 'All'} / Region: ${selectedRegion || 'All'}`;
+        doc.text(headerText, 20, 11);
+        doc.text(`Page ${pageNum - 1}`, doc.internal.pageSize.width - 10, 11, { align: 'right' });
+
+        // Header divider line in hex color #FF0500
+        doc.setDrawColor(255, 5, 0);
+        doc.setLineWidth(0.3);
+        doc.line(10, 16, doc.internal.pageSize.width - 10, 16);
+
+        // Page Footer divider line in hex color #FF0500
+        doc.line(10, doc.internal.pageSize.height - 12, doc.internal.pageSize.width - 10, doc.internal.pageSize.height - 12);
+
+        // Footer Text
+        doc.setTextColor(0, 0, 0);
+        doc.setFontSize(8);
+        const leftFooterStr = `Survey Date Range: ${surveyRangeStr}`;
+        doc.text(leftFooterStr, 10, doc.internal.pageSize.height - 7);
+
+        const rightFooterStr = `Report Date: ${new Date().toLocaleDateString()}`;
+        doc.text(rightFooterStr, doc.internal.pageSize.width - 10, doc.internal.pageSize.height - 7, { align: 'right' });
       }
     });
 
-    const filename = displayId.replace(/[^a-z0-9]/gi, '_');
-    doc.save(`agt_full_report_${filename}.pdf`);
+    const now = new Date();
+    const pad = (n: number) => String(n).padStart(2, '0');
+    const timestamp = `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
+    const reportLabel = reportType === 'simple' ? 'Simple' : (reportType === 'detailed' ? 'Detail' : 'Custom');
+    doc.save(`AGT Base Report-${reportLabel}-${timestamp}.pdf`);
   };
 
   const downloadCsv = () => {
@@ -686,12 +1687,16 @@ export default function App() {
     const csv = Papa.unparse(csvData);
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
-    const displayId = (searchKey || 'Bulk').replace(/[^a-z0-9]/gi, '_');
+    
+    const now = new Date();
+    const pad = (n: number) => String(n).padStart(2, '0');
+    const timestamp = `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
+    const reportLabel = reportType === 'simple' ? 'Simple' : (reportType === 'detailed' ? 'Detail' : 'Custom');
     
     if (link.download !== undefined) {
       const url = URL.createObjectURL(blob);
       link.setAttribute('href', url);
-      link.setAttribute('download', `agt_${reportType}_report_${displayId}.csv`);
+      link.setAttribute('download', `AGT Base Report-${reportLabel}-${timestamp}.csv`);
       link.style.visibility = 'hidden';
       document.body.appendChild(link);
       link.click();
@@ -701,6 +1706,32 @@ export default function App() {
 
   const toggleColumn = (name: string) => {
     setColumns(prev => prev.map(c => c.name === name ? { ...c, enabled: !c.enabled } : c));
+  };
+
+  const handleToggleIndices = (idxs: number[]) => {
+    const allEnabled = idxs.every(idx => customEnabledIndices.includes(idx));
+    let nextCustomIndices: number[];
+    if (allEnabled) {
+      nextCustomIndices = customEnabledIndices.filter(i => !idxs.includes(i));
+    } else {
+      const uniqueNew = idxs.filter(idx => !customEnabledIndices.includes(idx));
+      nextCustomIndices = [...customEnabledIndices, ...uniqueNew];
+    }
+    setCustomEnabledIndices(nextCustomIndices);
+    localStorage.setItem('agt_custom_cols', JSON.stringify(nextCustomIndices));
+
+    if (reportType === 'custom') {
+      const updatedCols = columns.map(col => {
+        if (idxs.includes(col.rawIndex)) {
+          return { ...col, enabled: !allEnabled };
+        }
+        return col;
+      });
+      setColumns(updatedCols);
+      if (data.length) {
+        findRecord(data, updatedCols);
+      }
+    }
   };
 
   const activeColumnsCount = useMemo(() => columns.filter(c => c.enabled).length, [columns]);
@@ -736,32 +1767,35 @@ export default function App() {
               }}
             />
             <div className="flex flex-col">
-              <h1 className="font-bold text-xs tracking-[0.2em] uppercase text-agt-orange">Alliance of Galactic Travellers</h1>
-              <span className="text-[9px] text-agt-orange uppercase tracking-[0.3em] font-bold">AGT Base Report Tool</span>
+              <h1 className="font-bold text-xs tracking-[0.2em] uppercase text-agt-orange">{t('alliance_of_galactic_travellers')}</h1>
+              <span className="text-[9px] text-agt-orange uppercase tracking-[0.3em] font-bold">{t('AGT Base Report Tool')}</span>
             </div>
           </div>
           
           <div className="flex items-center gap-6">
             <div className="hidden md:block text-[9px] text-agt-orange/30 tracking-widest font-mono">
-              STATUS: <span className={
+              {t('STATUS:')} <span className={
                 loading ? 'text-yellow-500' :
                 sheetUrl ? 'text-emerald-500' : 
                 'text-red-500'
               }>
-                {loading ? 'SYNCING' : sheetUrl ? 'CONNECTED' : 'DISCONNECTED'}
+                {loading ? t('SYNCING') : sheetUrl ? t('CONNECTED') : t('DISCONNECTED')}
               </span>
             </div>
-            <button 
-              onClick={() => setShowSettings(!showSettings)}
-              className="p-2 hover:bg-agt-orange/5 rounded-lg transition-colors relative group"
+            <motion.button 
+              onClick={() => setShowSettings(true)}
+              whileHover={{ rotate: 180 }}
+              whileTap={{ scale: 0.9, rotate: 360 }}
+              transition={{ duration: 0.4, ease: "easeInOut" }}
+              className="p-2 bg-transparent rounded-lg relative group focus:outline-none"
               title="Settings"
               id="settings-btn"
             >
-              <Settings className={`w-5 h-5 transition-transform duration-300 ${showSettings ? 'text-agt-orange rotate-90' : 'text-agt-orange group-hover:text-agt-orange'}`} />
+              <Settings className="w-5 h-5 text-[#FF0500]" />
               {!sheetUrl && (
-                <span className="absolute top-0 right-0 w-1.5 h-1.5 bg-agt-orange rounded-full shadow-[0_0_5px_rgba(255,180,81,0.5)]"></span>
+                <span className="absolute top-0 right-0 w-1.5 h-1.5 bg-[#FF0500] rounded-full shadow-[0_0_5px_rgba(255,5,0,0.5)]"></span>
               )}
-            </button>
+            </motion.button>
           </div>
         </div>
       </header>
@@ -772,14 +1806,14 @@ export default function App() {
           {/* Main Search Logic Container - centered aesthetic */}
           <div className="flex flex-col items-center space-y-12">
             <div className="w-full max-w-xl text-center space-y-4">
-              <h2 className="text-4xl font-light tracking-tight text-agt-orange">AGT Base Report Tool</h2>
+              <h2 className="text-4xl font-light tracking-tight text-[#FFB451]">{t("AGT Base Report Tool")}</h2>
               
               {/* Category selector */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mb-4 w-full">
                 {[
-                  { id: 'all', label: 'All Bases' },
-                  { id: 'style', label: 'Base Style' },
-                  { id: 'type', label: 'Base Type' }
+                  { id: 'all', label: t('All Bases') },
+                  { id: 'style', label: t('Base Style') },
+                  { id: 'type', label: t('Base Type') }
                 ].map(cat => (
                   <button
                     key={cat.id}
@@ -799,10 +1833,10 @@ export default function App() {
                         );
                       }
                     }}
-                    className={`px-4 py-3 rounded-xl text-[9px] uppercase tracking-widest font-bold transition-all border ${
+                    className={`px-4 py-3 rounded-xl text-[9px] uppercase tracking-widest font-bold transition-all border-2 ${
                       planetCategory === cat.id 
-                        ? 'bg-agt-orange text-black border-agt-orange shadow-lg' 
-                        : 'text-agt-orange border-agt-orange/20 hover:bg-agt-orange/10'
+                        ? 'bg-[#E25530] text-white border-[#FF0500] shadow-[0_0_15px_rgba(226,85,48,0.3)]' 
+                        : 'text-agt-orange border-[#FF0500]/30 hover:bg-[#FF0500]/10'
                     }`}
                   >
                     {cat.label}
@@ -812,7 +1846,7 @@ export default function App() {
 
               {/* Report Mode Selector */}
               <div className="flex justify-center mb-8">
-                <div className="inline-flex p-1 bg-agt-orange/5 border border-agt-orange/20 rounded-xl">
+                <div className="inline-flex p-1 bg-black/40 border-2 border-[#FF0500] rounded-xl flex-wrap sm:flex-nowrap gap-1">
                   <button
                     onClick={() => {
                       setReportType('simple');
@@ -821,11 +1855,11 @@ export default function App() {
                     }}
                     className={`px-6 py-2 rounded-lg text-[10px] uppercase tracking-widest font-bold transition-all ${
                       reportType === 'simple' 
-                        ? 'bg-agt-orange text-black shadow-lg' 
+                        ? 'bg-[#E25530] text-white' 
                         : 'text-agt-orange hover:bg-agt-orange/10'
                     }`}
                   >
-                    Simple Report
+                    {t('Simple Report')}
                   </button>
                   <button
                     onClick={() => {
@@ -835,47 +1869,61 @@ export default function App() {
                     }}
                     className={`px-6 py-2 rounded-lg text-[10px] uppercase tracking-widest font-bold transition-all ${
                       reportType === 'detailed' 
-                        ? 'bg-agt-orange text-black shadow-lg' 
+                        ? 'bg-[#E25530] text-white' 
                         : 'text-agt-orange hover:bg-agt-orange/10'
                     }`}
                   >
-                    Detailed Report
+                    {t('Detailed Report')}
+                  </button>
+                  <button
+                    onClick={() => {
+                      setReportType('custom');
+                      setData([]);
+                      setMatchedRecords([]);
+                    }}
+                    className={`px-6 py-2 rounded-lg text-[10px] uppercase tracking-widest font-bold transition-all ${
+                      reportType === 'custom' 
+                        ? 'bg-[#E25530] text-white' 
+                        : 'text-agt-orange hover:bg-agt-orange/10'
+                    }`}
+                  >
+                    {t('Custom Report')}
                   </button>
                 </div>
               </div>
 
               <div className="flex flex-col md:flex-row items-center justify-center gap-4">
                 <div className="space-y-1">
-                  <p className="text-agt-orange text-[10px] font-bold tracking-widest uppercase">Criteria 1</p>
-                  <p className="text-agt-orange text-xs font-bold tracking-widest uppercase">Select Civilization</p>
+                  <p className="text-[#FFB451] text-[10px] font-bold tracking-widest uppercase">{t('Criteria 1')}</p>
+                  <p className="text-[#FFB451] text-xs font-bold tracking-widest uppercase">{t('Select Civilization')}</p>
                 </div>
-                <div className="h-px w-8 bg-agt-orange/20 hidden md:block mt-4"></div>
+                <div className="h-px w-8 bg-[#FF0500]/30 hidden md:block mt-4"></div>
                 <div className="space-y-1">
-                  <p className="text-agt-orange text-[10px] font-bold tracking-widest uppercase">Criteria 2</p>
-                  <p className="text-agt-orange text-xs font-bold tracking-widest uppercase">
-                    Select <a href="https://nomanssky.fandom.com/wiki/Galaxy" target="_blank" rel="noopener noreferrer" className="underline hover:text-agt-orange/80 transition-colors">Galaxy</a>
+                  <p className="text-[#FFB451] text-[10px] font-bold tracking-widest uppercase">{t('Criteria 2')}</p>
+                  <p className="text-[#FFB451] text-xs font-bold tracking-widest uppercase">
+                    {t('Select')} <a href="https://nomanssky.fandom.com/wiki/Galaxy" target="_blank" rel="noopener noreferrer" className="underline hover:text-[#FFB451]/80 transition-colors">Galaxy</a>
                   </p>
                 </div>
-                <div className="h-px w-8 bg-agt-orange/20 hidden md:block mt-4"></div>
+                <div className="h-px w-8 bg-[#FF0500]/30 hidden md:block mt-4"></div>
                 <div className="space-y-1">
-                  <p className="text-agt-orange text-[10px] font-bold tracking-widest uppercase">Criteria 3</p>
-                  <p className="text-agt-orange text-xs font-bold tracking-widest uppercase">Enter Region</p>
+                  <p className="text-[#FFB451] text-[10px] font-bold tracking-widest uppercase">{t('Criteria 3')}</p>
+                  <p className="text-[#FFB451] text-xs font-bold tracking-widest uppercase">{t('Enter Region')}</p>
                 </div>
                 {planetCategory === 'style' && (
                   <>
-                    <div className="h-px w-8 bg-agt-orange/20 hidden md:block mt-4"></div>
+                    <div className="h-px w-8 bg-[#FF0500]/30 hidden md:block mt-4"></div>
                     <div className="space-y-1">
-                      <p className="text-agt-orange text-[10px] font-bold tracking-widest uppercase">Criteria 4</p>
-                      <p className="text-agt-orange text-xs font-bold tracking-widest uppercase">Select Style</p>
+                      <p className="text-[#FFB451] text-[10px] font-bold tracking-widest uppercase">{t('Criteria 4')}</p>
+                      <p className="text-[#FFB451] text-xs font-bold tracking-widest uppercase">{t('Select Style')}</p>
                     </div>
                   </>
                 )}
                 {planetCategory === 'type' && (
                   <>
-                    <div className="h-px w-8 bg-agt-orange/20 hidden md:block mt-4"></div>
+                    <div className="h-px w-8 bg-[#FF0500]/30 hidden md:block mt-4"></div>
                     <div className="space-y-1">
-                      <p className="text-agt-orange text-[10px] font-bold tracking-widest uppercase">Criteria 4</p>
-                      <p className="text-agt-orange text-xs font-bold tracking-widest uppercase">Select Type</p>
+                      <p className="text-[#FFB451] text-[10px] font-bold tracking-widest uppercase">{t('Criteria 4')}</p>
+                      <p className="text-[#FFB451] text-xs font-bold tracking-widest uppercase">{t('Select Type')}</p>
                     </div>
                   </>
                 )}
@@ -883,80 +1931,57 @@ export default function App() {
             </div>
 
             <div className={`w-full max-w-5xl grid grid-cols-1 ${planetCategory !== 'all' ? 'md:grid-cols-4' : 'md:grid-cols-3'} gap-6`}>
-              {/* Civilization Dropdown */}
-              <div className="relative group">
-                <div className="absolute inset-y-0 left-0 pl-6 flex items-center pointer-events-none text-agt-orange group-focus-within:text-agt-orange transition-colors">
-                  <Search className="h-5 w-5" />
-                </div>
-                <select
-                  value={searchKey}
-                  onChange={(e) => {
-                    const val = e.target.value;
-                    setSearchKey(val);
-                    if (data.length) {
-                      findRecord(data, columns, val, selectedGalaxy, selectedRegion, planetCategory, selectedStyle, selectedType, includeDeconstructed);
-                    } else {
-                      fetchData({ searchKey: val });
-                    }
-                  }}
-                  className="block w-full pl-14 pr-12 py-5 bg-[#1d1d1d] border-2 border-agt-orange rounded-full text-lg font-mono tracking-wider focus:outline-none focus:ring-2 focus:ring-agt-orange focus:border-agt-orange transition-all input-glow text-agt-orange appearance-none shadow-[0_0_30px_rgba(255,180,81,0.05)]"
-                  id="civilization-select"
-                >
-                  <option value="" className="bg-[#1d1d1d]">-- Civilization --</option>
-                  <option value="All" className="bg-[#1d1d1d]">All</option>
-                  {CIVILIZATIONS.map(civ => (
-                    <option key={civ} value={civ} className="bg-[#1d1d1d]">{civ}</option>
-                  ))}
-                </select>
-                <div className="absolute right-4 inset-y-0 flex items-center pointer-events-none text-agt-orange">
-                  <ChevronRight className="w-5 h-5 rotate-90" />
-                </div>
-              </div>
+              {/* Civilization Search */}
+              <Autocomplete
+                id="civilization-select"
+                value={searchKey}
+                placeholder={t("Civilization Search...")}
+                options={uniqueCivilizations}
+                icon={<Search className="h-5 w-5" />}
+                onChange={(val) => {
+                  setSearchKey(val);
+                  if (data.length) {
+                    findRecord(data, columns, val, selectedGalaxy, selectedRegion, planetCategory, selectedStyle, selectedType, includeDeconstructed);
+                  } else {
+                    fetchData({ searchKey: val });
+                  }
+                }}
+              />
 
               {/* Galaxy Search */}
-              <div className="relative group">
-                <div className="absolute inset-y-0 left-0 pl-6 flex items-center pointer-events-none text-agt-orange group-focus-within:text-agt-orange transition-colors">
-                  <Globe className="h-5 w-5" />
-                </div>
-                <input
-                  value={selectedGalaxy}
-                  placeholder="Select Galaxy..."
-                  onChange={(e) => {
-                    const val = e.target.value;
-                    setSelectedGalaxy(val);
-                    if (data.length) {
-                      findRecord(data, columns, searchKey, val, selectedRegion, planetCategory, selectedStyle, selectedType, includeDeconstructed);
-                    }
-                  }}
-                  className="block w-full pl-14 pr-12 py-5 bg-[#1d1d1d] border-2 border-agt-orange rounded-full text-lg font-mono tracking-wider focus:outline-none focus:ring-2 focus:ring-agt-orange focus:border-agt-orange transition-all input-glow text-agt-orange shadow-[0_0_30px_rgba(255,180,81,0.05)]"
-                  id="galaxy-select"
-                />
-              </div>
+              <Autocomplete
+                id="galaxy-select"
+                value={selectedGalaxy}
+                placeholder={t("Galaxy Search...")}
+                options={uniqueGalaxies}
+                icon={<Globe className="h-5 w-5" />}
+                onChange={(val) => {
+                  setSelectedGalaxy(val);
+                  if (data.length) {
+                    findRecord(data, columns, searchKey, val, selectedRegion, planetCategory, selectedStyle, selectedType, includeDeconstructed);
+                  }
+                }}
+              />
 
               {/* Region Search */}
-              <div className="relative group">
-                <div className="absolute inset-y-0 left-0 pl-6 flex items-center pointer-events-none text-agt-orange group-focus-within:text-agt-orange transition-colors">
-                  <Database className="h-5 w-5" />
-                </div>
-                <input
-                  value={selectedRegion}
-                  placeholder="Enter Region..."
-                  onChange={(e) => {
-                    const val = e.target.value;
-                    setSelectedRegion(val);
-                    if (data.length) {
-                      findRecord(data, columns, searchKey, selectedGalaxy, val, planetCategory, selectedStyle, selectedType, includeDeconstructed);
-                    }
-                  }}
-                  className="block w-full pl-14 pr-12 py-5 bg-[#1d1d1d] border-2 border-agt-orange rounded-full text-lg font-mono tracking-wider focus:outline-none focus:ring-2 focus:ring-agt-orange focus:border-agt-orange transition-all input-glow text-agt-orange shadow-[0_0_30px_rgba(255,180,81,0.05)]"
-                  id="region-select"
-                />
-              </div>
+              <Autocomplete
+                id="region-select"
+                value={selectedRegion}
+                placeholder={t("Region Search...")}
+                options={uniqueRegions}
+                icon={<Database className="h-5 w-5" />}
+                onChange={(val) => {
+                  setSelectedRegion(val);
+                  if (data.length) {
+                    findRecord(data, columns, searchKey, selectedGalaxy, val, planetCategory, selectedStyle, selectedType, includeDeconstructed);
+                  }
+                }}
+              />
 
               {/* Style Search - Only if category is style */}
               {planetCategory === 'style' && (
                 <div className="relative group">
-                  <div className="absolute inset-y-0 left-0 pl-6 flex items-center pointer-events-none text-agt-orange group-focus-within:text-agt-orange transition-colors">
+                  <div className="absolute inset-y-0 left-0 pl-6 flex items-center pointer-events-none text-[#FF0500] group-focus-within:text-[#FF0500] transition-colors">
                     <Table className="h-5 w-5" />
                   </div>
                   <select
@@ -968,15 +1993,15 @@ export default function App() {
                         findRecord(data, columns, searchKey, selectedGalaxy, selectedRegion, planetCategory, val, selectedType, includeDeconstructed);
                       }
                     }}
-                    className="block w-full pl-14 pr-12 py-5 bg-[#1d1d1d] border-2 border-agt-orange rounded-full text-lg font-mono tracking-wider focus:outline-none focus:ring-2 focus:ring-agt-orange focus:border-agt-orange transition-all input-glow text-agt-orange appearance-none shadow-[0_0_30px_rgba(255,180,81,0.05)]"
+                    className="block w-full pl-14 pr-12 py-5 bg-[#141414] border-2 border-[#FF0500] rounded-full text-lg font-mono tracking-wider focus:outline-none focus:ring-2 focus:ring-[#FF0500] focus:border-[#FF0500] transition-all input-glow text-[#FFB451] appearance-none shadow-[0_0_30px_rgba(255,5,0,0.05)]"
                     id="style-select"
                   >
-                    <option value="All">All Styles</option>
+                    <option value="All" className="bg-[#141414]">{t("All Styles")}</option>
                     {BASE_STYLES.map(style => (
-                      <option key={style} value={style} className="bg-[#1d1d1d]">{style}</option>
+                      <option key={style} value={style} className="bg-[#141414]">{style}</option>
                     ))}
                   </select>
-                  <div className="absolute right-4 inset-y-0 flex items-center pointer-events-none text-agt-orange">
+                  <div className="absolute right-4 inset-y-0 flex items-center pointer-events-none text-[#FF0500]">
                     <ChevronRight className="w-5 h-5 rotate-90" />
                   </div>
                 </div>
@@ -985,7 +2010,7 @@ export default function App() {
               {/* Type Search - Only if category is type */}
               {planetCategory === 'type' && (
                 <div className="relative group">
-                  <div className="absolute inset-y-0 left-0 pl-6 flex items-center pointer-events-none text-agt-orange group-focus-within:text-agt-orange transition-colors">
+                  <div className="absolute inset-y-0 left-0 pl-6 flex items-center pointer-events-none text-[#FF0500] group-focus-within:text-[#FF0500] transition-colors">
                     <Table className="h-5 w-5" />
                   </div>
                   <select
@@ -997,25 +2022,67 @@ export default function App() {
                         findRecord(data, columns, searchKey, selectedGalaxy, selectedRegion, planetCategory, selectedStyle, val, includeDeconstructed);
                       }
                     }}
-                    className="block w-full pl-14 pr-12 py-5 bg-[#1d1d1d] border-2 border-agt-orange rounded-full text-lg font-mono tracking-wider focus:outline-none focus:ring-2 focus:ring-agt-orange focus:border-agt-orange transition-all input-glow text-agt-orange appearance-none shadow-[0_0_30px_rgba(255,180,81,0.05)]"
+                    className="block w-full pl-14 pr-12 py-5 bg-[#141414] border-2 border-[#FF0500] rounded-full text-lg font-mono tracking-wider focus:outline-none focus:ring-2 focus:ring-[#FF0500] focus:border-[#FF0500] transition-all input-glow text-[#FFB451] appearance-none shadow-[0_0_30px_rgba(255,5,0,0.05)]"
                     id="type-select"
                   >
-                    <option value="All">All Types</option>
+                    <option value="All" className="bg-[#141414]">{t("All Types")}</option>
                     {BASE_TYPES.map(type => (
-                      <option key={type} value={type} className="bg-[#1d1d1d]">{type}</option>
+                      <option key={type} value={type} className="bg-[#141414]">{type}</option>
                     ))}
                   </select>
-                  <div className="absolute right-4 inset-y-0 flex items-center pointer-events-none text-agt-orange">
+                  <div className="absolute right-4 inset-y-0 flex items-center pointer-events-none text-[#FF0500]">
                     <ChevronRight className="w-5 h-5 rotate-90" />
                   </div>
                 </div>
               )}
             </div>
 
+            {/* Survey Date Range Filter Block */}
+            <div className="flex flex-col md:flex-row items-center gap-4 bg-[#141414] border-2 border-[#FF0500] px-8 py-5 rounded-3xl backdrop-blur-sm shadow-[0_4px_20px_rgba(255,5,0,0.03)] w-full max-w-5xl justify-between">
+              <div className="flex items-center gap-3">
+                <Calendar className="w-5 h-5 text-[#FF0500]" />
+                <span className="text-[11px] md:text-sm uppercase tracking-[0.15em] font-bold text-[#FFB451] font-mono">
+                  {t("Survey Date Filter:")}
+                </span>
+              </div>
+              <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
+                <div className="flex items-center gap-2 w-full sm:w-auto">
+                  <span className="text-xs font-mono text-agt-orange">{t("Start:")}</span>
+                  <input
+                    type="date"
+                    value={startDate}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setStartDate(val);
+                      if (data.length) {
+                        findRecord(data, columns, searchKey, selectedGalaxy, selectedRegion, planetCategory, selectedStyle, selectedType, includeDeconstructed, val, endDate);
+                      }
+                    }}
+                    className="bg-[#1c1c1c] border-2 border-[#FF0500] rounded-xl px-4 py-2 font-mono text-xs text-agt-orange focus:outline-none focus:ring-1 focus:ring-[#FF0500]"
+                  />
+                </div>
+                <div className="flex items-center gap-2 w-full sm:w-auto">
+                  <span className="text-xs font-mono text-agt-orange">{t("End:")}</span>
+                  <input
+                    type="date"
+                    value={endDate}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setEndDate(val);
+                      if (data.length) {
+                        findRecord(data, columns, searchKey, selectedGalaxy, selectedRegion, planetCategory, selectedStyle, selectedType, includeDeconstructed, startDate, val);
+                      }
+                    }}
+                    className="bg-[#1c1c1c] border-2 border-[#FF0500] rounded-xl px-4 py-2 font-mono text-xs text-[#FFB451] focus:outline-none focus:ring-1 focus:ring-[#FF0500]"
+                  />
+                </div>
+              </div>
+            </div>
+
             {/* Toggle switch for Include Deconstructed Base Records? */}
-            <div className="flex flex-col sm:flex-row items-center gap-4 bg-agt-orange/5 border border-agt-orange/25 px-8 py-4 rounded-3xl backdrop-blur-sm shadow-[0_4px_20px_rgba(255,180,81,0.03)] selection:bg-none">
+            <div className="flex flex-col sm:flex-row items-center gap-4 bg-black/40 border-2 border-[#FF0500] px-8 py-4 rounded-3xl backdrop-blur-sm shadow-[0_4px_20px_rgba(255,5,0,0.03)] selection:bg-none">
               <span className="text-[11px] md:text-sm uppercase tracking-[0.15em] font-bold text-agt-orange font-mono">
-                Include Deconstructed Base Records?
+                {t("Include Deconstructed Base Records?")}
               </span>
               <div className="flex items-center gap-2">
                 <button
@@ -1026,14 +2093,14 @@ export default function App() {
                       findRecord(data, columns, searchKey, selectedGalaxy, selectedRegion, planetCategory, selectedStyle, selectedType, false);
                     }
                   }}
-                  className={`px-4 py-1.5 rounded-full text-[10px] font-mono font-black uppercase tracking-widest transition-all ${
+                  className={`px-4 py-1.5 rounded-full text-[10px] font-mono font-black uppercase tracking-widest transition-all border ${
                     !includeDeconstructed
-                      ? 'bg-agt-orange text-black font-extrabold shadow-[0_0_10px_rgba(255,180,81,0.4)]'
-                      : 'text-agt-orange/60 hover:text-agt-orange hover:bg-agt-orange/10'
+                      ? 'bg-[#E25530] text-white border-[#FF0500] font-extrabold shadow-[0_0_10px_rgba(255,5,0,0.4)]'
+                      : 'text-agt-orange/60 hover:text-[#FFB451] hover:bg-[#FF0500]/10 border-transparent'
                   }`}
                   id="deconstructed-no"
                 >
-                  No
+                  {t("No")}
                 </button>
                 <button
                   type="button"
@@ -1043,36 +2110,59 @@ export default function App() {
                       findRecord(data, columns, searchKey, selectedGalaxy, selectedRegion, planetCategory, selectedStyle, selectedType, true);
                     }
                   }}
-                  className={`px-4 py-1.5 rounded-full text-[10px] font-mono font-black uppercase tracking-widest transition-all ${
+                  className={`px-4 py-1.5 rounded-full text-[10px] font-mono font-black uppercase tracking-widest transition-all border ${
                     includeDeconstructed
-                      ? 'bg-agt-orange text-black font-extrabold shadow-[0_0_10px_rgba(255,180,81,0.4)]'
-                      : 'text-agt-orange/60 hover:text-agt-orange hover:bg-agt-orange/10'
+                      ? 'bg-[#E25530] text-white border-[#FF0500] font-extrabold shadow-[0_0_10px_rgba(255,5,0,0.4)]'
+                      : 'text-agt-orange/60 hover:text-[#FFB451] hover:bg-[#FF0500]/10 border-transparent'
                   }`}
                   id="deconstructed-yes"
                 >
-                  Yes
+                  {t("Yes")}
                 </button>
               </div>
             </div>
 
-            <button
-              onClick={handleSearch}
-              disabled={loading}
-              className="px-20 py-5 border-2 border-agt-orange bg-transparent text-agt-orange rounded-full font-black text-sm uppercase tracking-[0.2em] hover:bg-agt-orange/10 active:scale-[0.96] disabled:opacity-25 disabled:pointer-events-none shadow-[0_4px_15px_rgba(0,0,0,0.3)] hover:shadow-[0_0_20px_rgba(255,180,81,0.4)] transition-all flex flex-col items-center gap-2"
-              id="fetch-btn"
-            >
-              {loading ? (
-                <>
-                  <RefreshCw className="w-5 h-5 animate-spin" />
-                  <span className="text-[10px] tracking-[0.1em] mt-1">Data Access in Process - Please Wait</span>
-                </>
-              ) : (
-                <>
-                  <RefreshCw className="w-5 h-5" />
-                  <span>Extract Reports</span>
-                </>
-              )}
-            </button>
+            <div className="flex flex-row items-center justify-center gap-4">
+              <button
+                onClick={handleSearch}
+                disabled={loading}
+                className="px-14 py-5 border-2 border-[#FF0500] bg-[#E25530] text-white rounded-full font-black text-sm uppercase tracking-[0.2em] hover:bg-[#E25530]/80 active:scale-[0.96] disabled:opacity-25 disabled:pointer-events-none shadow-[0_4px_15px_rgba(0,0,0,0.3)] hover:shadow-[0_0_20px_rgba(255,5,0,0.4)] transition-all flex flex-row items-center gap-2"
+                id="fetch-btn"
+              >
+                {loading ? (
+                  <>
+                    <RefreshCw className="w-5 h-5 animate-spin" />
+                    <span className="text-[10px] tracking-[0.1em] mt-1">{t("Data Access in Process - Please Wait")}</span>
+                  </>
+                ) : (
+                  <>
+                    <RefreshCw className="w-5 h-5" />
+                    <span>{t("Extract Records")}</span>
+                  </>
+                )}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setSearchKey('All');
+                  setSelectedGalaxy('All');
+                  setSelectedRegion('All');
+                  setStartDate('');
+                  setEndDate('');
+                  setSelectedStyle('All');
+                  setSelectedType('All');
+                  setIncludeDeconstructed(false);
+                  if (data.length) {
+                    findRecord(data, columns, 'All', 'All', 'All', planetCategory, 'All', 'All', false, '', '');
+                  }
+                }}
+                className="px-8 py-5 border-2 border-[#FF0500] bg-[#E25530] text-white rounded-full font-black text-sm uppercase tracking-[0.2em] hover:bg-[#E25530]/80 active:scale-[0.96] transition-all"
+                id="clear-btn"
+              >
+                {t("Clear Filters")}
+              </button>
+            </div>
 
             {error && (
               <motion.div 
@@ -1088,87 +2178,209 @@ export default function App() {
 
           <div className="space-y-12">
             
-            {/* Settings Area - Full Width Toggleable */}
+            {/* Settings Area - POP-UP WINDOW BOX Overlay */}
             <AnimatePresence>
               {showSettings && (
-                <motion.div 
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: 'auto', opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  className="overflow-hidden bg-[#161616] border border-agt-orange/5 rounded-2xl"
-                >
-                    <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-12">
-                    {/* Data Section */}
-                    <div className="space-y-4">
-                      <h3 className="text-[10px] uppercase tracking-widest font-bold text-agt-orange flex items-center gap-2">
-                        <Database className="w-3 h-3" />
-                        Source Identity
-                      </h3>
-                      <div className="space-y-4">
-                        <button 
-                          onClick={fetchData}
-                          className="w-full py-4 bg-agt-orange/5 border border-agt-orange text-agt-orange rounded-xl text-[10px] uppercase tracking-widest font-bold hover:bg-agt-orange/10 transition-colors"
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm">
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.95, y: 15 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.95, y: 15 }}
+                    className="relative w-full max-w-sm max-h-[70vh] overflow-y-auto bg-[#141414] border-2 border-[#FF0500] rounded-3xl p-5 shadow-[0_0_50px_rgba(255,5,0,0.15)] font-mono text-agt-orange scrollbar-thin scrollbar-thumb-[#FF0500] scrollbar-track-[#141414] pr-4"
+                  >
+                    {/* Settings title and close */}
+                    <div className="flex items-center justify-between border-b-2 border-[#FF0500] pb-4 mb-6">
+                      <h2 className="text-lg font-bold uppercase tracking-widest text-[#FFFFB0] flex items-center gap-2 font-mono">
+                        <Settings className="w-5 h-5 text-[#FF0500] animate-spin" style={{ animationDuration: '6s' }} />
+                        {t("Settings Console")}
+                      </h2>
+                      <button
+                        onClick={() => setShowSettings(false)}
+                        className="px-4 py-1.5 border-2 border-[#FF0500] bg-[#E25530] text-white hover:bg-[#E25530]/80 rounded-full font-bold text-xs uppercase tracking-wider transition-all"
+                      >
+                        {t("Close")}
+                      </button>
+                    </div>
+
+                    <div className="space-y-6">
+                      {/* Database Source Synchronizer */}
+                      <div className="border-b-2 border-[#FF0500]/30 pb-5">
+                        <h3 className="text-xs uppercase tracking-widest font-bold text-[#FFB451] mb-2 flex items-center gap-2 font-mono">
+                          <Database className="w-4 h-4 text-[#FF0500]" />
+                          {t("Source Identity")}
+                        </h3>
+                        <button
+                          onClick={() => {
+                            fetchData();
+                            setShowSettings(false);
+                          }}
+                          className="w-full py-2.5 bg-[#E25530] hover:bg-[#E25530]/80 text-white font-bold text-xs uppercase tracking-widest rounded-xl transition-all border-2 border-[#FF0500]"
                         >
-                          Re-sync Point Log Source
+                          {t("Resync Database")}
                         </button>
                       </div>
-                    </div>
 
-                    {/* Records Display Limit Section */}
-                    <div className="space-y-4">
-                      <h3 className="text-[10px] uppercase tracking-widest font-bold text-agt-orange flex items-center gap-2">
-                        <Table className="w-3 h-3" />
-                        Records Display Limit
-                      </h3>
-                      <div className="space-y-2">
-                        <p className="text-[10px] text-agt-orange uppercase tracking-wider">Configure default rows per page</p>
-                        <div className="flex flex-wrap gap-2">
-                          {[15, 30, 50, 100].map(size => (
-                            <button
-                              key={size}
-                              onClick={() => {
-                                setPageSize(size);
-                                localStorage.setItem('agt_page_size', String(size));
-                                setCurrentPage(1);
-                              }}
-                              className={`px-4 py-2 text-[10px] font-mono font-bold uppercase tracking-widest border rounded-xl transition-all ${
-                                pageSize === size
-                                  ? 'bg-agt-orange text-black border-agt-orange shadow-[0_0_10px_rgba(255,180,81,0.3)]'
-                                  : 'text-agt-orange border-agt-orange/20 hover:bg-agt-orange/10'
-                              }`}
-                            >
-                              {size}
-                            </button>
-                          ))}
+                      {/* Font Scaling & Records Per Page side-by-side dropdowns */}
+                      <div className="grid grid-cols-2 gap-4 border-b-2 border-[#FF0500]/30 pb-5">
+                        <div>
+                          <label className="text-xs uppercase tracking-widest font-bold text-[#FFB451] mb-1.5 flex items-center gap-1.5 font-mono">
+                            <Table className="w-3.5 h-3.5 text-[#FF0500]" />
+                            {t("Font Scaling")}
+                          </label>
+                          <select
+                            value={fontScale}
+                            onChange={(e) => setFontScale(e.target.value)}
+                            className="w-full bg-[#1c1c1c] border-2 border-[#FF0500]/30 rounded-xl px-2.5 py-2 text-xs text-agt-orange font-mono focus:outline-none focus:border-[#FF0500] transition-colors"
+                          >
+                            {['1x', '1.5x', '2x', '2.5x', '3x'].map(scale => (
+                              <option key={scale} value={scale} className="bg-[#141414]">
+                                {scale === '1x' ? '1x (default)' : scale}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+
+                        <div>
+                          <label className="text-xs uppercase tracking-widest font-bold text-[#FFB451] mb-1.5 flex items-center gap-1.5 font-mono">
+                            <Table className="w-3.5 h-3.5 text-[#FF0500]" />
+                            {t("Records Per Page")}
+                          </label>
+                          <select
+                            value={pageSize}
+                            onChange={(e) => {
+                              const size = Number(e.target.value);
+                              setPageSize(size);
+                              localStorage.setItem('agt_page_size', String(size));
+                              setCurrentPage(1);
+                            }}
+                            className="w-full bg-[#1c1c1c] border-2 border-[#FF0500]/30 rounded-xl px-2.5 py-2 text-xs text-agt-orange font-mono focus:outline-none focus:border-[#FF0500] transition-colors"
+                          >
+                            {[15, 30, 50, 100].map(size => (
+                              <option key={size} value={size} className="bg-[#141414]">
+                                {size}
+                              </option>
+                            ))}
+                          </select>
                         </div>
                       </div>
-                    </div>
 
-                    {/* Audio Section */}
-                    <div className="col-span-1 md:col-span-2 pt-8 border-t border-white/5 space-y-4">
-                      <div className="flex items-center justify-between">
-                        <div className="space-y-1">
-                          <h3 className="text-[10px] uppercase tracking-widest font-bold text-agt-orange flex items-center gap-2">
-                            <Volume2 className="w-3 h-3" />
-                            Ambience Module
-                          </h3>
-                          <p className="text-[10px] text-agt-orange uppercase tracking-wider">Atmospheric Background Loop</p>
+                      {/* Custom Report Column Settings Selector */}
+                      <div className="border-b-2 border-[#FF0500]/30 pb-5">
+                        <h3 className="text-xs uppercase tracking-widest font-bold text-[#FFB451] mb-1 flex items-center gap-1.5 font-mono">
+                          <Table className="w-4 h-4 text-[#FF0500]" />
+                          {t("Custom Report Columns")}
+                        </h3>
+                        <p className="text-[9px] text-[#FFB451]/50 mb-2 font-mono">
+                          {t("Configure which columns appear in the Custom Report")}
+                        </p>
+                        
+                        <div className="flex flex-wrap gap-1 max-h-48 overflow-y-auto p-1.5 bg-black/30 rounded-xl border border-[#FF0500]/20 scrollbar-thin scrollbar-thumb-[#E25530] scrollbar-track-transparent">
+                          {CUSTOM_COLUMN_TOGGLES.map(item => {
+                            const isEnabled = item.idxs.every(idx => customEnabledIndices.includes(idx));
+                            
+                            return (
+                              <button
+                                key={item.colNum}
+                                onClick={() => handleToggleIndices(item.idxs)}
+                                className={`px-1.5 py-0.5 text-[8px] font-bold font-mono tracking-wide rounded border transition-all ${
+                                  isEnabled
+                                    ? 'bg-[#E25530] text-white border-[#FF0500] shadow-[0_0_4px_rgba(255,5,0,0.3)]'
+                                    : 'bg-[#1a1a1a] text-[#FFB451]/50 border-[#FF0500]/20 hover:text-[#FFB451] hover:bg-[#FF0500]/10'
+                                }`}
+                              >
+                                {item.label}
+                              </button>
+                            );
+                          })}
                         </div>
+                      </div>
+
+                      {/* Language Selection Selection block */}
+                      <div className="border-b-2 border-[#FF0500]/30 pb-5 col-span-1">
+                        <h3 className="text-xs uppercase tracking-widest font-bold text-[#FFB451] mb-2 flex items-center gap-1.5 font-mono">
+                          <Globe className="w-4 h-4 text-[#FF0500]" />
+                          {t("Language Selection")}
+                        </h3>
+                        <select
+                          value={lang}
+                          onChange={(e) => {
+                            const selectedLang = e.target.value;
+                            setLang(selectedLang);
+                            localStorage.setItem('agt_lang', selectedLang);
+                          }}
+                          className="w-full bg-[#1c1c1c] border-2 border-[#FF0500]/30 rounded-xl px-2.5 py-2 text-xs text-agt-orange font-mono focus:outline-none focus:border-[#FF0500] transition-colors"
+                        >
+                          <option value="en">English (default)</option>
+                          <option value="fr">Français (French)</option>
+                          <option value="es">Español (Spanish)</option>
+                          <option value="it">Italiano (Italian)</option>
+                          <option value="de">Deutsch (German)</option>
+                          <option value="pt">Português (Portuguese (Brazilian))</option>
+                          <option value="hi">हिन्दी (Hindi)</option>
+                          <option value="zh">中文 (Mandarin Chinese)</option>
+                          <option value="ja">日本語 (Japanese)</option>
+                          <option value="th">ไทย (Thai)</option>
+                        </select>
+                      </div>
+
+                      {/* Background AGT Anthem */}
+                      <div className="flex items-center justify-between pt-1">
+                        <h3 className="text-xs uppercase tracking-widest font-bold text-[#FFB451] flex items-center gap-1.5 font-mono">
+                          <Volume2 className="w-4 h-4 text-[#FF0500]" />
+                          {t("Background AGT Anthem")}
+                        </h3>
                         <button 
                           onClick={() => setAudioEnabled(!audioEnabled)}
-                          className={`flex items-center gap-3 px-6 py-3 rounded-xl border transition-all text-[10px] uppercase tracking-widest font-bold ${
+                          className={`flex items-center gap-2 px-4 py-2 rounded-full border-2 transition-all text-[10px] uppercase tracking-widest font-bold ${
                             audioEnabled 
-                              ? 'bg-agt-orange/10 border-agt-orange text-agt-orange' 
-                              : 'bg-black/40 border-white/5 text-agt-orange'
+                              ? 'bg-[#E25530] border-[#FF0500] text-white shadow-[0_0_10px_rgba(255,5,0,0.5)]' 
+                              : 'bg-[#1c1c1c] border-[#FF0500]/30 text-agt-orange'
                           }`}
                         >
                           {audioEnabled ? <Volume2 className="w-3.5 h-3.5" /> : <VolumeX className="w-3.5 h-3.5" />}
-                          {audioEnabled ? 'Active' : 'Muted'}
+                          {audioEnabled ? t('Active') : t('Muted')}
                         </button>
                       </div>
                     </div>
-                  </div>
-                </motion.div>
+                  </motion.div>
+                </div>
+              )}
+            </AnimatePresence>
+
+            {/* PDF Error Pop-up Modal */}
+            <AnimatePresence>
+              {pdfError && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm">
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.95, y: 15 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.95, y: 15 }}
+                    className="relative w-full max-w-sm bg-[#141414] border-2 border-[#FF0500] rounded-3xl p-6 shadow-[0_0_50px_rgba(255,5,0,0.15)] font-mono text-agt-orange text-center"
+                  >
+                    <div className="flex flex-col items-center gap-4">
+                      <div className="w-12 h-12 rounded-full bg-[#FF0500]/10 flex items-center justify-center border-2 border-[#FF0500]/30 text-[#FF0500]">
+                        <AlertCircle className="w-6 h-6 animate-pulse" />
+                      </div>
+                      <h3 className="text-sm font-bold uppercase tracking-wider text-[#FFFFB0] font-mono">
+                        {t("PDF Generation Aborted")}
+                      </h3>
+                      <p className="text-xs text-[#FFB451] leading-relaxed font-mono">
+                        {t(pdfError)}
+                      </p>
+                      <button
+                        onClick={() => {
+                          setPdfError(null);
+                          try {
+                            alert(pdfError);
+                          } catch (e) {}
+                        }}
+                        className="mt-2 px-6 py-2 border-2 border-[#FF0500] bg-[#E25530] text-white hover:bg-[#E25530]/80 rounded-full font-bold text-xs uppercase tracking-wider transition-all"
+                      >
+                        {t("OK")}
+                      </button>
+                    </div>
+                  </motion.div>
+                </div>
               )}
             </AnimatePresence>
 
@@ -1181,13 +2393,13 @@ export default function App() {
                     initial={{ opacity: 0, y: 30 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.98 }}
-                    className="glass-card rounded-2xl overflow-hidden"
+                    className="glass-card border-2 border-[#FF0500] rounded-2xl overflow-hidden"
                   >
-                    <div className="p-8 border-b border-agt-orange/5 flex flex-col md:flex-row md:items-center justify-between gap-6">
+                    <div className="p-8 border-b-2 border-[#FF0500] flex flex-col md:flex-row md:items-center justify-between gap-6">
                       <div className="space-y-1">
                         <h3 className="text-xl font-medium text-agt-orange flex items-center gap-3">
                           AGT Galactic Archives Results
-                          <span className="px-2 py-0.5 rounded-full bg-agt-orange/5 text-[10px] text-agt-orange border border-agt-orange font-mono">
+                          <span className="px-2 py-0.5 rounded-full bg-[#E25530] text-[10px] text-white border border-[#FF0500] font-mono">
                             {matchedRecords.length} FOUND
                           </span>
                         </h3>
@@ -1195,10 +2407,10 @@ export default function App() {
                       </div>
 
                       <div className="flex flex-wrap items-center gap-3">
-                        {reportType === 'simple' && (
+                        {(reportType === 'simple' || reportType === 'custom') && (
                           <button
                             onClick={downloadFullReportPdf}
-                            className="flex items-center gap-3 px-6 py-3 border border-agt-orange bg-transparent text-agt-orange hover:bg-agt-orange/10 rounded-xl text-[9px] uppercase tracking-[0.2em] font-bold transition-all shadow-[0_4px_20px_rgba(255,180,81,0.1)] active:scale-[0.98]"
+                            className="flex items-center gap-3 px-6 py-3 border-2 border-[#FF0500] bg-[#E25530] text-white hover:bg-[#E25530]/80 rounded-xl text-[9px] uppercase tracking-[0.2em] font-bold transition-all shadow-[0_4px_20px_rgba(255,5,0,0.1)] active:scale-[0.98]"
                           >
                             <Download className="w-3.5 h-3.5" />
                             <span>PDF Report</span>
@@ -1206,7 +2418,7 @@ export default function App() {
                         )}
                         <button
                           onClick={downloadCsv}
-                          className="flex items-center gap-3 px-6 py-3 border border-agt-orange bg-transparent text-agt-orange hover:bg-agt-orange/10 rounded-xl text-[9px] uppercase tracking-[0.2em] font-bold transition-all shadow-[0_4px_20px_rgba(255,180,81,0.1)] active:scale-[0.98]"
+                          className="flex items-center gap-3 px-6 py-3 border-2 border-[#FF0500] bg-[#E25530] text-white hover:bg-[#E25530]/80 rounded-xl text-[9px] uppercase tracking-[0.2em] font-bold transition-all shadow-[0_4px_20px_rgba(255,5,0,0.1)] active:scale-[0.98]"
                         >
                           <Table className="w-3.5 h-3.5" />
                           <span>Download CSV</span>
@@ -1217,7 +2429,7 @@ export default function App() {
                     <div className="overflow-x-auto custom-scrollbar">
                       <table className="w-full text-left border-collapse">
                         <thead>
-                          <tr className="bg-agt-orange/[0.02] border-b border-agt-orange/5">
+                          <tr className="bg-agt-orange/[0.02] border-b-2 border-[#FF0500]">
                             {columns.filter(col => col.enabled).map((col, idx) => (
                               <th key={idx} className="py-2 px-4 text-[9px] uppercase tracking-widest font-bold text-agt-orange whitespace-nowrap">
                                 {col.name}
@@ -1225,18 +2437,33 @@ export default function App() {
                             ))}
                           </tr>
                         </thead>
-                        <tbody className="divide-y divide-agt-orange/5">
+                        <tbody className="divide-y divide-[#FF0500]/30">
                           {paginatedRecords.map((record, rIdx) => (
                             <tr key={rIdx} className="hover:bg-agt-orange/[0.02] transition-colors group">
-                              {columns.filter(col => col.enabled).map((col, cIdx) => (
-                                <td key={cIdx} className="py-1 px-4 text-[10px] text-agt-orange font-mono whitespace-nowrap overflow-hidden text-ellipsis max-w-[200px]">
-                                  {getDisplayValue(record[col.name], col.rawIndex) || <span className="text-agt-orange italic">-</span>}
-                                </td>
-                              ))}
+                              {columns.filter(col => col.enabled).map((col, cIdx) => {
+                                const cellVal = getDisplayValue(record[col.name], col.rawIndex);
+                                const isWikiLink = col.name.trim().toLowerCase().includes('wiki') || String(cellVal).startsWith('http');
+                                return (
+                                  <td key={cIdx} className="py-1 px-4 text-[10px] text-agt-orange font-mono whitespace-nowrap overflow-hidden text-ellipsis max-w-[200px]">
+                                    {isWikiLink ? (
+                                      <a
+                                        href={String(record[col.name] || cellVal)}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="underline hover:text-[#E25530] text-agt-orange transition-colors"
+                                      >
+                                        {cellVal || 'Link'}
+                                      </a>
+                                    ) : (
+                                      cellVal || <span className="text-agt-orange italic">-</span>
+                                    )}
+                                  </td>
+                                );
+                              })}
                             </tr>
                           ))}
                         </tbody>
-                        <tfoot className="border-t-2 border-agt-orange/10 bg-agt-orange/[0.03]">
+                        <tfoot className="border-t-2 border-[#FF0500] bg-black/40">
                           <tr>
                             {columns.filter(col => col.enabled).map((col, idx) => (
                               <td key={idx} className="py-2 px-4 text-[10px] font-bold text-agt-orange">
@@ -1391,10 +2618,32 @@ export default function App() {
       {/* Background Audio */}
       <audio 
         ref={audioRef}
-        src="/api/asset-proxy?id=1MLd7Vp0whtVXZF-KRxSoH2544q4TA5zD"
+        src="/AGT Anthem (Instrumental).mp3"
         loop
         preload="auto"
       />
+
+      {/* Horizontally Rotating Spinner Overlay */}
+      <AnimatePresence>
+        {showExtractorSpinner && (
+          <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#070707]/95 backdrop-blur-md">
+            <motion.img
+              src="/AGTIcon.png"
+              alt="Searching AGT Records..."
+              className="w-40 h-40 object-contain"
+              animate={{ rotateY: 360 }}
+              transition={{ repeat: Infinity, duration: 1.5, ease: "linear" }}
+              onError={(e) => {
+                const img = e.target as HTMLImageElement;
+                img.src = '/AGTicon.png'; // fallback
+              }}
+            />
+            <p className="mt-8 text-lg font-mono font-black tracking-widest uppercase text-[#E25530]">
+              Searching AGT Base Records
+            </p>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

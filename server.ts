@@ -7,8 +7,12 @@ async function startServer() {
   const PORT = 3000;
 
   // Expose local file assets directly
-  app.get(["/geonms-font.ttf", "/src/geonms-font.ttf"], (req, res) => {
-    res.sendFile(path.join(process.cwd(), "geonms-font.ttf"));
+  app.get(["/NMSFuturaProBook_Kerned.ttf", "/src/NMSFuturaProBook_Kerned.ttf"], (req, res) => {
+    res.sendFile(path.join(process.cwd(), "NMSFuturaProBook_Kerned.ttf"));
+  });
+
+  app.get(["/AGT Anthem (Instrumental).mp3", "/src/AGT Anthem (Instrumental).mp3"], (req, res) => {
+    res.sendFile(path.join(process.cwd(), "AGT Anthem (Instrumental).mp3"));
   });
 
   app.get(["/AGTicon.png", "/AGTIcon.png", "/src/AGTicon.png", "/src/AGTIcon.png"], (req, res) => {
