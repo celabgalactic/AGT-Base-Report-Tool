@@ -910,6 +910,18 @@ const getSecurityLevelInfo = (level: number) => {
   }
 };
 
+const formatCacheDate = (dateString: string): string => {
+  const date = new Date(dateString);
+  if (isNaN(date.getTime())) return '';
+  const day = String(date.getDate()).padStart(2, '0');
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const month = months[date.getMonth()];
+  const year = date.getFullYear();
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  return `${day}-${month}-${year} ${hours}:${minutes}`;
+};
+
 export default function App() {
   const [lang, setLang] = useState<string>(() => {
     return localStorage.getItem('agt_lang') || 'en';
@@ -949,6 +961,10 @@ export default function App() {
   const [selectedType, setSelectedType] = useState<string>('All');
   const [includeDeconstructed, setIncludeDeconstructed] = useState<boolean>(false);
   const [securityOmitFilter, setSecurityOmitFilter] = useState<'all' | 'omit_public' | 'omit_classified'>('all');
+  const [cachedDate, setCachedDate] = useState<string | null>(() => {
+    return localStorage.getItem('agt_cached_csv_date');
+  });
+  const [isUsingCache, setIsUsingCache] = useState<boolean>(false);
   const [sheetUrl, setSheetUrl] = useState<string>(() => {
     const saved = localStorage.getItem('sheet_reporter_url');
     // We want to force upgrade anyone on a non-TSV or wrong GID url
@@ -1276,7 +1292,13 @@ export default function App() {
 
   // Initial fetch
   useEffect(() => {
-    if (sheetUrl) {
+    const cachedData = localStorage.getItem('agt_cached_csv');
+    if (cachedData) {
+      const isTsv = sheetUrl ? sheetUrl.includes('output=tsv') : false;
+      setLoading(true);
+      processCsvText(cachedData, isTsv);
+      setIsUsingCache(true);
+    } else if (sheetUrl) {
       fetchData();
     }
   }, []);
@@ -1337,6 +1359,121 @@ export default function App() {
     }
   }, [sheetUrl]);
 
+  const processCsvText = (
+    csvText: string, 
+    isTsv: boolean, 
+    overrides?: { 
+      searchKey?: string; 
+      galaxy?: string; 
+      region?: string; 
+      category?: PlanetCategory; 
+      style?: string; 
+      type?: string; 
+      includeDeconstructed?: boolean;
+      builder?: string;
+    }
+  ) => {
+    Papa.parse(csvText, {
+      header: false,
+      skipEmptyLines: true,
+      delimiter: isTsv ? '\t' : undefined,
+      complete: (results) => {
+        const rawRows = results.data as string[][];
+        if (rawRows.length < 2) {
+          setError('The source sheet data is insufficient (need at least 2 rows).');
+          setLoading(false);
+          return;
+        }
+
+        const headers = rawRows[1]; // Row 2 is headers
+        headersCache.current = headers;
+        
+        // Simple Columns: A, B, C, D, E, F, H, I, O, P, AZ, BA, BH (Indices: 0, 1, 2, 3, 4, 5, 7, 8, 14, 15, 51, 52, 59)
+        const simpleIndices = [0, 1, 2, 3, 4, 5, 7, 8, 14, 15, 51, 52, 59];
+
+        // Detailed Columns: A, B, C, D, E, F, G, H, I, K, L, N, O, P, all from Q to BA, BD, BE, BF, BG, BH (Indices: 0..8, 10, 11, 13, 14, 15, Q(16)..BA(52), 55, 56, 57, 58, 59)
+        const detailedRangeQtoBA = Array.from({ length: 52 - 16 + 1 }, (_, i) => i + 16);
+        const detailedIndices = [
+          0, 1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 13, 14, 15,
+          ...detailedRangeQtoBA,
+          55, 56, 57, 58, 59
+        ];
+        
+        const targetIndexes = reportType === 'simple' ? simpleIndices : (reportType === 'detailed' ? detailedIndices : CUSTOM_COLUMN_ALL_INDICES);
+        
+        const filteredColumns = targetIndexes.map(idx => ({
+          name: headers[idx] || `Col ${String.fromCharCode(65 + (idx % 26))}${idx >= 26 ? String.fromCharCode(65 + Math.floor(idx / 26) - 1) : ''}`,
+          enabled: reportType === 'custom' ? customEnabledIndices.includes(idx) : true,
+          rawIndex: idx
+        }));
+        
+        setColumns(filteredColumns);
+        
+        const processedData = rawRows.slice(2) // Records start at Row 3 (index 2)
+          .filter(row => {
+            const colA = String(row[0] || '').trim();
+            const colC = String(row[2] || '').trim();
+            const colD = String(row[3] || '').trim();
+            const colE = String(row[4] || '').trim();
+            
+            // Ignore any rows with a blank or null value in Column A.
+            if (!colA || colA.toLowerCase() === 'null') return false;
+            
+            // Ignore any rows with SKIPROW in column A.
+            if (colA.toUpperCase().includes('SKIPROW')) return false;
+            
+            // Ignore any rows with #N/A in column C, Column D, or Column E.
+            if (
+               colC.toUpperCase().includes('#N/A') || 
+               colD.toUpperCase().includes('#N/A') || 
+               colE.toUpperCase().includes('#N/A')
+            ) return false;
+            
+            return true;
+          })
+          .map(row => {
+            const rowObj: any = { _raw: row }; // Keep raw row for filtering
+            targetIndexes.forEach((colIdx, listIdx) => {
+              const headerName = filteredColumns[listIdx].name;
+              rowObj[headerName] = row[colIdx] || '';
+            });
+            return rowObj;
+          });
+        
+        setData(processedData);
+        
+        const currentS = overrides?.searchKey ?? searchKey;
+        const currentG = overrides?.galaxy ?? selectedGalaxy;
+        const currentR = overrides?.region ?? selectedRegion;
+        const currentC = overrides?.category ?? planetCategory;
+        const currentStyle = overrides?.style ?? selectedStyle;
+        const currentType = overrides?.type ?? selectedType;
+        const currentDeconstructed = overrides?.includeDeconstructed ?? includeDeconstructed;
+        const currentBuilder = overrides?.builder ?? selectedBuilderName;
+
+        findRecord(
+          processedData, 
+          filteredColumns, 
+          currentS, 
+          currentG, 
+          currentR, 
+          currentC, 
+          currentStyle, 
+          currentType, 
+          currentDeconstructed,
+          startDate,
+          endDate,
+          currentBuilder
+        );
+        setLoading(false);
+      },
+      error: (err: any) => {
+        setError(`Parsing error: ${err.message}`);
+        setLoading(false);
+      }
+    });
+  };
+
   const fetchData = async (overrides?: { 
     searchKey?: string; 
     galaxy?: string; 
@@ -1373,105 +1510,16 @@ export default function App() {
       
       const csvText = await response.text();
       
-      Papa.parse(csvText, {
-        header: false,
-        skipEmptyLines: true,
-        delimiter: fetchUrl.includes('output=tsv') ? '\t' : undefined,
-        complete: (results) => {
-          const rawRows = results.data as string[][];
-          if (rawRows.length < 2) {
-            setError('The source sheet data is insufficient (need at least 2 rows).');
-            setLoading(false);
-            return;
-          }
+      // Save successfully synced data and timestamp to localStorage:
+      localStorage.setItem('agt_cached_csv', csvText);
+      const nowISO = new Date().toISOString();
+      localStorage.setItem('agt_cached_csv_date', nowISO);
+      setCachedDate(nowISO);
+      setIsUsingCache(false);
 
-          const headers = rawRows[1]; // Row 2 is headers
-          headersCache.current = headers;
-          
-          // Simple Columns: A, B, C, D, E, F, H, I, O, P, AZ, BA, BH (Indices: 0, 1, 2, 3, 4, 5, 7, 8, 14, 15, 51, 52, 59)
-          const simpleIndices = [0, 1, 2, 3, 4, 5, 7, 8, 14, 15, 51, 52, 59];
+      const isTsv = fetchUrl.includes('output=tsv');
+      processCsvText(csvText, isTsv, overrides);
 
-          // Detailed Columns: A, B, C, D, E, F, G, H, I, K, L, N, O, P, all from Q to BA, BD, BE, BF, BG, BH (Indices: 0..8, 10, 11, 13, 14, 15, Q(16)..BA(52), 55, 56, 57, 58, 59)
-          const detailedRangeQtoBA = Array.from({ length: 52 - 16 + 1 }, (_, i) => i + 16);
-          const detailedIndices = [
-            0, 1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 13, 14, 15,
-            ...detailedRangeQtoBA,
-            55, 56, 57, 58, 59
-          ];
-          
-          const targetIndexes = reportType === 'simple' ? simpleIndices : (reportType === 'detailed' ? detailedIndices : CUSTOM_COLUMN_ALL_INDICES);
-          
-          const filteredColumns = targetIndexes.map(idx => ({
-            name: headers[idx] || `Col ${String.fromCharCode(65 + (idx % 26))}${idx >= 26 ? String.fromCharCode(65 + Math.floor(idx / 26) - 1) : ''}`,
-            enabled: reportType === 'custom' ? customEnabledIndices.includes(idx) : true,
-            rawIndex: idx
-          }));
-          
-          setColumns(filteredColumns);
-          
-          const processedData = rawRows.slice(2) // Records start at Row 3 (index 2)
-            .filter(row => {
-              const colA = String(row[0] || '').trim();
-              const colC = String(row[2] || '').trim();
-              const colD = String(row[3] || '').trim();
-              const colE = String(row[4] || '').trim();
-              
-              // Ignore any rows with a blank or null value in Column A.
-              if (!colA || colA.toLowerCase() === 'null') return false;
-              
-              // Ignore any rows with SKIPROW in column A.
-              if (colA.toUpperCase().includes('SKIPROW')) return false;
-              
-              // Ignore any rows with #N/A in column C, Column D, or Column E.
-              if (
-                 colC.toUpperCase().includes('#N/A') || 
-                 colD.toUpperCase().includes('#N/A') || 
-                 colE.toUpperCase().includes('#N/A')
-              ) return false;
-              
-              return true;
-            })
-            .map(row => {
-              const rowObj: any = { _raw: row }; // Keep raw row for filtering
-              targetIndexes.forEach((colIdx, listIdx) => {
-                const headerName = filteredColumns[listIdx].name;
-                rowObj[headerName] = row[colIdx] || '';
-              });
-              return rowObj;
-            });
-          
-          setData(processedData);
-          
-          const currentS = overrides?.searchKey ?? searchKey;
-          const currentG = overrides?.galaxy ?? selectedGalaxy;
-          const currentR = overrides?.region ?? selectedRegion;
-          const currentC = overrides?.category ?? planetCategory;
-          const currentStyle = overrides?.style ?? selectedStyle;
-          const currentType = overrides?.type ?? selectedType;
-          const currentDeconstructed = overrides?.includeDeconstructed ?? includeDeconstructed;
-          const currentBuilder = overrides?.builder ?? selectedBuilderName;
-
-          findRecord(
-            processedData, 
-            filteredColumns, 
-            currentS, 
-            currentG, 
-            currentR, 
-            currentC, 
-            currentStyle, 
-            currentType, 
-            currentDeconstructed,
-            startDate,
-            endDate,
-            currentBuilder
-          );
-          setLoading(false);
-        },
-        error: (err: any) => {
-          setError(`Parsing error: ${err.message}`);
-          setLoading(false);
-        }
-      });
     } catch (err: any) {
       setError(err.message || 'Operation failed');
       setLoading(false);
@@ -2408,14 +2456,27 @@ export default function App() {
           </div>
           
           <div className="flex items-center gap-6">
-            <div className="hidden md:block text-[9px] text-agt-orange/30 tracking-widest font-mono">
-              {t('STATUS:')} <span className={
-                loading ? 'text-yellow-500' :
-                sheetUrl ? 'text-emerald-500' : 
-                'text-red-500'
-              }>
-                {loading ? t('SYNCING') : sheetUrl ? t('CONNECTED') : t('DISCONNECTED')}
-              </span>
+            <div className="hidden md:flex flex-col items-end font-mono">
+              {cachedDate ? (
+                <>
+                  <div className="text-[9px] text-agt-orange/30 tracking-widest uppercase">
+                    {t('STATUS:')} <span className="text-blue-400 font-bold">Cached</span>
+                  </div>
+                  <div className="text-[8px] text-blue-400 font-mono tracking-wider mt-0.5 opacity-90 uppercase">
+                    {formatCacheDate(cachedDate)}
+                  </div>
+                </>
+              ) : (
+                <div className="text-[9px] text-agt-orange/30 tracking-widest uppercase">
+                  {t('STATUS:')} <span className={
+                    loading ? 'text-yellow-500' :
+                    sheetUrl ? 'text-emerald-500' : 
+                    'text-red-500'
+                  }>
+                    {loading ? t('SYNCING') : sheetUrl ? t('CONNECTED') : t('DISCONNECTED')}
+                  </span>
+                </div>
+              )}
             </div>
             
             <div 
@@ -3249,6 +3310,10 @@ export default function App() {
                         </h3>
                         <button
                           onClick={() => {
+                            localStorage.removeItem('agt_cached_csv');
+                            localStorage.removeItem('agt_cached_csv_date');
+                            setCachedDate(null);
+                            setIsUsingCache(false);
                             fetchData();
                             setShowSettings(false);
                           }}
@@ -3256,6 +3321,11 @@ export default function App() {
                         >
                           {t("Resync Database")}
                         </button>
+                        {cachedDate && (
+                          <div className="text-[10px] text-blue-400 font-mono text-center mt-2 tracking-wider">
+                            {formatCacheDate(cachedDate)}
+                          </div>
+                        )}
                       </div>
                     </div>
                   </motion.div>
@@ -3533,7 +3603,9 @@ export default function App() {
                           loading 
                             ? 'bg-yellow-500 shadow-[0_0_8px_rgba(234,179,8,0.7)] animate-pulse'
                             : (sheetUrl && !error && data.length > 0)
-                              ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.7)] animate-pulse'
+                              ? (isUsingCache 
+                                  ? 'bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.7)] animate-pulse' 
+                                  : 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.7)] animate-pulse')
                               : 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.7)] animate-pulse'
                         }`}></div>
                         <span className="text-[10px] uppercase tracking-widest text-[#FFB451] font-bold font-mono">Ledger Integrity: Verified</span>
