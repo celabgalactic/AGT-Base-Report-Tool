@@ -2168,6 +2168,13 @@ export default function App() {
 
             const rightFooterStr = `Report Date: ${new Date().toLocaleDateString()}`;
             doc.text(rightFooterStr, doc.internal.pageSize.width - 10, doc.internal.pageSize.height - 7, { align: 'right' });
+
+            if (highestSecLevel > 0) {
+              doc.setTextColor(255, 0, 0);
+              doc.setFont("Helvetica", "bold");
+              doc.setFontSize(8.5);
+              doc.text(getSecurityLevelInfo(highestSecLevel).text, doc.internal.pageSize.width / 2, doc.internal.pageSize.height - 7, { align: 'center' });
+            }
           }
         });
 
