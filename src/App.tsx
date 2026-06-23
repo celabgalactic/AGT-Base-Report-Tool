@@ -20,12 +20,20 @@ import {
   Volume2,
   VolumeX,
   Globe,
-  Calendar
+  Calendar,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
+  UserCheck,
+  CheckCircle,
+  Trash2,
+  Bug
 } from 'lucide-react';
 import Papa from 'papaparse';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { CIVILIZATIONS, GALAXIES } from './constants';
+import playerBasesIcon from './player-bases-icon.png';
 
 function Autocomplete({
   value,
@@ -194,6 +202,7 @@ const FALLBACK_HEADERS: Record<number, string> = {
 
 const DICTIONARY: Record<string, Record<string, string>> = {
   en: {
+    "AGT Base Report": "AGT Base Report",
     "AGT Base Report Tool": "AGT Base Report Tool",
     "All Bases": "All Bases",
     "Base Style": "Base Style",
@@ -223,12 +232,12 @@ const DICTIONARY: Record<string, Record<string, string>> = {
     "Searching AGT Base Records": "Searching AGT Base Records",
     "Settings Console": "Settings Console",
     "Close": "Close",
-    "Source Identity": "Source Identity",
+    "Database Sync": "Database Sync",
     "Resync Database": "Resync Database",
     "Font Scaling": "Font Scaling",
     "default": "default",
     "Records Per Page": "Records Per Page",
-    "Background AGT Anthem": "Background AGT Anthem",
+    "AGT Anthem": "AGT Anthem",
     "Language Selection": "Language Selection",
     "Choose preferred interface language": "Choose preferred interface language",
     "Custom Report Columns": "Custom Report Columns",
@@ -250,6 +259,7 @@ const DICTIONARY: Record<string, Record<string, string>> = {
     "Verified Galactic Ledger Matches": "Verified Galactic Ledger Matches"
   },
   fr: {
+    "AGT Base Report": "Rapport de Base AGT",
     "AGT Base Report Tool": "Outil de Rapport de Base AGT",
     "All Bases": "Toutes les Bases",
     "Base Style": "Style de Base",
@@ -279,12 +289,12 @@ const DICTIONARY: Record<string, Record<string, string>> = {
     "Searching AGT Base Records": "Recherche des Dossiers de Base AGT",
     "Settings Console": "Console de Configuration",
     "Close": "Fermer",
-    "Source Identity": "Identité Source",
+    "Database Sync": "Synchro de base de données",
     "Resync Database": "Resynchroniser la Base de Données",
     "Font Scaling": "Taille de la Police",
     "default": "défaut",
     "Records Per Page": "Enregistrements Par Page",
-    "Background AGT Anthem": "Hymne de l'AGT en Arrière-plan",
+    "AGT Anthem": "Hymne de l'AGT",
     "Language Selection": "Sélection de la Langue",
     "Choose preferred interface language": "Choisissez la langue de l'interface",
     "Custom Report Columns": "Colonnes du Rapport Personnalisé",
@@ -306,6 +316,7 @@ const DICTIONARY: Record<string, Record<string, string>> = {
     "Verified Galactic Ledger Matches": "Correspondances de registre galactique vérifiées"
   },
   es: {
+    "AGT Base Report": "Reporte de Base AGT",
     "AGT Base Report Tool": "Herramienta de Reportes Base AGT",
     "All Bases": "Todas las Bases",
     "Base Style": "Estilo de Base",
@@ -335,12 +346,12 @@ const DICTIONARY: Record<string, Record<string, string>> = {
     "Searching AGT Base Records": "Buscando Registros Base AGT",
     "Settings Console": "Consola de Ajustes",
     "Close": "Cerrar",
-    "Source Identity": "Identidad de Origen",
+    "Database Sync": "Sincronización de Base de Datos",
     "Resync Database": "Resincronizar Base de Datos",
     "Font Scaling": "Escalar Fuente",
     "default": "predeterminado",
     "Records Per Page": "Registros por Página",
-    "Background AGT Anthem": "Himno AGT de Fondo",
+    "AGT Anthem": "Himno AGT",
     "Language Selection": "Selección de Idioma",
     "Choose preferred interface language": "Elija el idioma de interfaz preferido",
     "Custom Report Columns": "Columnas de Reporte Personalizado",
@@ -362,6 +373,7 @@ const DICTIONARY: Record<string, Record<string, string>> = {
     "Verified Galactic Ledger Matches": "Coincidencias de registro galáctico verificadas"
   },
   it: {
+    "AGT Base Report": "Report Base AGT",
     "AGT Base Report Tool": "Strumento di Report Base AGT",
     "All Bases": "Tutte le Basi",
     "Base Style": "Stile Base",
@@ -391,12 +403,12 @@ const DICTIONARY: Record<string, Record<string, string>> = {
     "Searching AGT Base Records": "Ricerca Registri Base AGT",
     "Settings Console": "Console Impostazioni",
     "Close": "Chiudi",
-    "Source Identity": "Identità Sorgente",
+    "Database Sync": "Sincronizzazione Database",
     "Resync Database": "Risincronizza Database",
     "Font Scaling": "Scala Caratteri",
     "default": "predefinito",
     "Records Per Page": "Record Per Pagina",
-    "Background AGT Anthem": "Inno AGT in Sottofondo",
+    "AGT Anthem": "Inno AGT",
     "Language Selection": "Selezione Lingua",
     "Choose preferred interface language": "Scegli la lingua dell'interfaccia preferita",
     "Custom Report Columns": "Colonne del Report Personalizzato",
@@ -418,6 +430,7 @@ const DICTIONARY: Record<string, Record<string, string>> = {
     "Verified Galactic Ledger Matches": "Corrispondenze registro galattico verificate"
   },
   de: {
+    "AGT Base Report": "AGT-Basisbericht",
     "AGT Base Report Tool": "AGT-Basisberichtstool",
     "All Bases": "Alle Basen",
     "Base Style": "Basisstil",
@@ -447,12 +460,12 @@ const DICTIONARY: Record<string, Record<string, string>> = {
     "Searching AGT Base Records": "Suche in AGT-Basisdaten",
     "Settings Console": "Einstellungen-Konsole",
     "Close": "Schließen",
-    "Source Identity": "Datenquelle",
+    "Database Sync": "Datenbank-Synchronisierung",
     "Resync Database": "Datenbank resynchronisieren",
     "Font Scaling": "Schriftskalierung",
     "default": "Standard",
     "Records Per Page": "Einträge pro Seite",
-    "Background AGT Anthem": "Hintergrund-AGT-Hymne",
+    "AGT Anthem": "AGT-Hymne",
     "Language Selection": "Sprachauswahl",
     "Choose preferred interface language": "Bevorzugte Benutzeroberflächensprache wählen",
     "Custom Report Columns": "Benutzerdefinierte Berichtsspalten",
@@ -474,6 +487,7 @@ const DICTIONARY: Record<string, Record<string, string>> = {
     "Verified Galactic Ledger Matches": "Verifizierte galaktische Ledger-Übereinstimmungen"
   },
   pt: {
+    "AGT Base Report": "Relatório de Base AGT",
     "AGT Base Report Tool": "Ferramenta de Relatório de Base AGT",
     "All Bases": "Todas as Bases",
     "Base Style": "Estilo da Base",
@@ -503,12 +517,12 @@ const DICTIONARY: Record<string, Record<string, string>> = {
     "Searching AGT Base Records": "Buscando Registros de Base AGT",
     "Settings Console": "Console de Configurações",
     "Close": "Fechar",
-    "Source Identity": "Identidade de Origem",
+    "Database Sync": "Sincronização de Banco de Dados",
     "Resync Database": "Resincronizar Banco de Dados",
     "Font Scaling": "Ajuste de Fonte",
     "default": "padrão",
     "Records Per Page": "Registros por Página",
-    "Background AGT Anthem": "Hino da AGT em Segundo Plano",
+    "AGT Anthem": "Hino da AGT",
     "Language Selection": "Seleção de Idioma",
     "Choose preferred interface language": "Escolha o idioma de interface preferido",
     "Custom Report Columns": "Colunas do Relatório Personalizado",
@@ -530,6 +544,7 @@ const DICTIONARY: Record<string, Record<string, string>> = {
     "Verified Galactic Ledger Matches": "Correspondências do Registro Galáctico Verificadas"
   },
   hi: {
+    "AGT Base Report": "AGT बेस रिपोर्ट",
     "AGT Base Report Tool": "AGT बेस रिपोर्ट टูล",
     "All Bases": "सभी बेस",
     "Base Style": "बेस शैली",
@@ -559,12 +574,12 @@ const DICTIONARY: Record<string, Record<string, string>> = {
     "Searching AGT Base Records": "AGT बेस रिकॉर्ड खोजे जा रहे हैं",
     "Settings Console": "सेटिंग्स कंसोल",
     "Close": "बंद करें",
-    "Source Identity": "स्रोत पहचान",
+    "Database Sync": "डेटाबेस सिंक",
     "Resync Database": "डेटाबेस सिंक करें",
     "Font Scaling": "फ़ॉन्ट स्केलिंग",
     "default": "डिफ़ॉल्ट",
     "Records Per Page": "प्रति पृष्ठ रिकॉर्ड",
-    "Background AGT Anthem": "बैकग्राउंड एजीटी गान",
+    "AGT Anthem": "एजीटी गान",
     "Language Selection": "भाषा चयन",
     "Choose preferred interface language": "पसंदीदा इंटरफ़ेस भाषा चुनें",
     "Custom Report Columns": "कस्टम रिपोर्ट कॉलम",
@@ -586,6 +601,7 @@ const DICTIONARY: Record<string, Record<string, string>> = {
     "Verified Galactic Ledger Matches": "सत्यापित गैलेक्टिक बहीखाता मिलान"
   },
   zh: {
+    "AGT Base Report": "AGT 基地报告",
     "AGT Base Report Tool": "AGT 基地报告工具",
     "All Bases": "所有基地",
     "Base Style": "基地样式",
@@ -615,12 +631,12 @@ const DICTIONARY: Record<string, Record<string, string>> = {
     "Searching AGT Base Records": "正在搜索 AGT 基地记录",
     "Settings Console": "设置控制台",
     "Close": "关闭",
-    "Source Identity": "源身份",
+    "Database Sync": "数据库同步",
     "Resync Database": "重新同步数据库",
     "Font Scaling": "字体微调",
     "default": "默认",
     "Records Per Page": "每页记录",
-    "Background AGT Anthem": "背景 AGT 颂歌",
+    "AGT Anthem": "AGT 颂歌",
     "Language Selection": "语言选择",
     "Choose preferred interface language": "选择首选界面语言",
     "Custom Report Columns": "自定义报告列",
@@ -642,6 +658,7 @@ const DICTIONARY: Record<string, Record<string, string>> = {
     "Verified Galactic Ledger Matches": "已验证的银河分类帐匹配"
   },
   ja: {
+    "AGT Base Report": "AGT 基地レポート",
     "AGT Base Report Tool": "AGT 基地レポートツール",
     "All Bases": "すべての基地",
     "Base Style": "基地スタイル",
@@ -671,12 +688,12 @@ const DICTIONARY: Record<string, Record<string, string>> = {
     "Searching AGT Base Records": "AGT 基地データを検索中",
     "Settings Console": "設定コンソール",
     "Close": "閉じる",
-    "Source Identity": "ソース識別子",
+    "Database Sync": "データベース同期",
     "Resync Database": "データベースを再同期",
     "Font Scaling": "フォント調整",
     "default": "デフォルト",
     "Records Per Page": "ページあたりの行数",
-    "Background AGT Anthem": "AGT 賛歌ループ",
+    "AGT Anthem": "AGT 賛歌",
     "Language Selection": "言語設定",
     "Choose preferred interface language": "インターフェース表示言語を選択",
     "Custom Report Columns": "カスタムレポート表示項目",
@@ -698,6 +715,7 @@ const DICTIONARY: Record<string, Record<string, string>> = {
     "Verified Galactic Ledger Matches": "検証済みの銀河元帳一致"
   },
   th: {
+    "AGT Base Report": "รายงานฐานข้อมูล AGT",
     "AGT Base Report Tool": "เครื่องมือรายงานฐานข้อมูล AGT",
     "All Bases": "ฐานข้อมูลทั้งหมด",
     "Base Style": "สไตล์ฐานข้อมูล",
@@ -727,12 +745,12 @@ const DICTIONARY: Record<string, Record<string, string>> = {
     "Searching AGT Base Records": "กำลังค้นหารายงานฐานข้อมูล AGT",
     "Settings Console": "แผงควบคุมการตั้งค่า",
     "Close": "ปิด",
-    "Source Identity": "เอกลักษณ์แหล่งข้อมูล",
+    "Database Sync": "ซิงค์ฐานข้อมูล",
     "Resync Database": "ซิงค์ฐานข้อมูลใหม่",
     "Font Scaling": "ขนาดตัวอักษร",
     "default": "ค่าเริ่มต้น",
     "Records Per Page": "จำนวนรายการต่อหน้า",
-    "Background AGT Anthem": "เพลงสรรเสริญ AGT เบื้องหลัง",
+    "AGT Anthem": "เพลงสรรเสริญ AGT",
     "Language Selection": "เลือกภาษา",
     "Choose preferred interface language": "เลือกภาษาของอินเทอร์เฟซที่ต้องการ",
     "Custom Report Columns": "คอลัมน์รายงานที่กำหนดเอง",
@@ -818,6 +836,80 @@ const getDisplayValue = (val: any, colIdx?: number) => {
   return strVal;
 };
 
+const isUrlColumn = (colIdx?: number, colName?: string, value?: any) => {
+  if (colIdx !== undefined) {
+    if (colIdx === 52 || colIdx === 55 || colIdx === 56 || colIdx === 57 || colIdx === 58) {
+      return true;
+    }
+  }
+  const nameLower = (colName || '').toLowerCase();
+  if (nameLower.includes('wiki') || nameLower.includes('link') || nameLower.includes('url')) {
+    return true;
+  }
+  const strVal = String(value || '').trim();
+  if (strVal.startsWith('http://') || strVal.startsWith('https://')) {
+    return true;
+  }
+  return false;
+};
+
+const getCookie = (name: string): string | null => {
+  if (typeof document === 'undefined') return null;
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) {
+    return decodeURIComponent(parts.pop()?.split(';').shift() || '');
+  }
+  return null;
+};
+
+const decodeXOR = (encodedText: string): string => {
+  const key = 969; 
+  let decoded = ""; 
+  for (let i = 0; i < encodedText.length; i++) { 
+    let charCode = encodedText.charCodeAt(i); 
+    let originalCharCode = charCode ^ key; // XOR again to reverse
+    decoded += String.fromCharCode(originalCharCode); 
+  } 
+  return decoded; 
+};
+
+const getSecurityLevelNumber = (val: any): number => {
+  if (val === undefined || val === null) return 0;
+  const clean = String(val).trim().toLowerCase();
+  if (clean === '') return 0;
+  if (clean === '0' || clean === '1' || clean === '2' || clean === '3' || clean === '4' || clean === '5') {
+    return parseInt(clean, 10);
+  }
+  const levels: Record<string, number> = {
+    'public': 0,
+    'private': 1,
+    'restricted': 2,
+    'top secret': 3,
+    'slt restricted': 4,
+    'scc restricted': 5
+  };
+  return levels[clean] !== undefined ? levels[clean] : 0;
+};
+const getSecurityLevelInfo = (level: number) => {
+  switch (level) {
+    case 0:
+      return { text: "Public", rgb: "rgb(42, 255, 0)" };
+    case 1:
+      return { text: "Private", rgb: "rgb(0, 244, 255)" };
+    case 2:
+      return { text: "Restricted", rgb: "rgb(241, 152, 226)" };
+    case 3:
+      return { text: "Top Secret", rgb: "rgb(253, 3, 3)" };
+    case 4:
+      return { text: "SLT Restricted", rgb: "rgb(255, 147, 0)" };
+    case 5:
+      return { text: "SCC Restricted", rgb: "rgb(50, 135, 240)" };
+    default:
+      return { text: "Public", rgb: "rgb(42, 255, 0)" };
+  }
+};
+
 export default function App() {
   const [lang, setLang] = useState<string>(() => {
     return localStorage.getItem('agt_lang') || 'en';
@@ -842,9 +934,13 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [matchedRecords, setMatchedRecords] = useState<any[]>([]);
+  const [classifiedOmittedCount, setClassifiedOmittedCount] = useState<number>(0);
+  const [sortColumn, setSortColumn] = useState<string | null>(null);
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [searchKey, setSearchKey] = useState('');
   const [selectedGalaxy, setSelectedGalaxy] = useState('All');
   const [selectedRegion, setSelectedRegion] = useState('All');
+  const [selectedBuilderName, setSelectedBuilderName] = useState('All');
 
   const [reportType, setReportType] = useState<ReportType>('simple');
   const [logoSrc, setLogoSrc] = useState<string>('/AGTicon.png');
@@ -852,6 +948,7 @@ export default function App() {
   const [selectedStyle, setSelectedStyle] = useState<string>('All');
   const [selectedType, setSelectedType] = useState<string>('All');
   const [includeDeconstructed, setIncludeDeconstructed] = useState<boolean>(false);
+  const [securityOmitFilter, setSecurityOmitFilter] = useState<'all' | 'omit_public' | 'omit_classified'>('all');
   const [sheetUrl, setSheetUrl] = useState<string>(() => {
     const saved = localStorage.getItem('sheet_reporter_url');
     // We want to force upgrade anyone on a non-TSV or wrong GID url
@@ -870,6 +967,222 @@ export default function App() {
   });
   const [showSettings, setShowSettings] = useState(false);
   const [pdfError, setPdfError] = useState<string | null>(null);
+  const [isGeneratingFile, setIsGeneratingFile] = useState(false);
+
+  // Traveller Name & ID Verification states
+  const [travellerNameInput, setTravellerNameInput] = useState(() => getCookie('traveller_name') || '');
+  const [travellerIdInput, setTravellerIdInput] = useState(() => getCookie('traveller_id') || '');
+  const [verifiedName, setVerifiedName] = useState<string | null>(() => getCookie('traveller_name'));
+  const [verifiedID, setVerifiedID] = useState<string | null>(() => getCookie('traveller_id'));
+  const [securityLevel, setSecurityLevel] = useState<number>(() => {
+    const cookieSec = getCookie('security_level');
+    if (cookieSec !== null) {
+      const parsed = Number(cookieSec);
+      return isNaN(parsed) ? 0 : parsed;
+    }
+    return 0; // default Public
+  });
+  const [verificationError, setVerificationError] = useState<React.ReactNode | null>(null);
+  const [verificationStateMsg, setVerificationStateMsg] = useState<string | null>(null);
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [popupMsg, setPopupMsg] = useState<string | null>(null);
+
+  const setCookie = (name: string, value: string, days = 365): boolean => {
+    if (typeof document === 'undefined') return false;
+    try {
+      const expires = new Date();
+      expires.setTime(expires.getTime() + days * 24 * 60 * 60 * 1000);
+      document.cookie = `${name}=${encodeURIComponent(value)};path=/;expires=${expires.toUTCString()};SameSite=Lax`;
+      const savedValue = getCookie(name);
+      return savedValue === value;
+    } catch (e) {
+      return false;
+    }
+  };
+
+  const deleteCookie = (name: string): boolean => {
+    if (typeof document === 'undefined') return false;
+    try {
+      document.cookie = `${name}=;path=/;expires=Thu, 01 Jan 1970 00:00:00 UTC;SameSite=Lax`;
+      const val = getCookie(name);
+      return val === null || val === '';
+    } catch (e) {
+      return false;
+    }
+  };
+
+  const handleVerifyID = async () => {
+    setVerificationError(null);
+    setIsVerifying(true);
+
+    try {
+      const trimmedName = travellerNameInput.trim();
+      const trimmedId = travellerIdInput.trim();
+
+      if (!trimmedName) {
+        setVerificationError("Traveller Name is required");
+        setIsVerifying(false);
+        setPopupMsg("Verification unsuccessful");
+        alert("Verification unsuccessful");
+        return;
+      }
+
+      if (trimmedName.length > 42) {
+        setVerificationError("Traveller Name must be 42 characters or less");
+        setIsVerifying(false);
+        setPopupMsg("Verification unsuccessful");
+        alert("Verification unsuccessful");
+        return;
+      }
+
+      const isAlphanumeric = /^[a-zA-Z0-9 ]+$/.test(trimmedName);
+      if (!isAlphanumeric) {
+        setVerificationError("Traveller Name must be alphanumeric");
+        setIsVerifying(false);
+        setPopupMsg("Verification unsuccessful");
+        alert("Verification unsuccessful");
+        return;
+      }
+
+      if (!trimmedId) {
+        setVerificationError("AGT Traveller ID is required");
+        setIsVerifying(false);
+        setPopupMsg("Verification unsuccessful");
+        alert("Verification unsuccessful");
+        return;
+      }
+
+      const idPattern = /^\d{8}-[0-9A-Za-z]{4}-\d{4}$/;
+      if (!idPattern.test(trimmedId)) {
+        setVerificationError("AGT Traveller ID must match format: ########-????-#### (e.g., 37411005-ABC9-1234)");
+        setIsVerifying(false);
+        setPopupMsg("Verification unsuccessful");
+        alert("Verification unsuccessful");
+        return;
+      }
+
+      const verifyUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSOZq3Cl2e0aNqzXdLRe63HuM7PlqGH3HnS_-0x6P_CYnGDJlK5QvI-YjU0lNaOgLyp3uoktS4WIXyK/pub?gid=505079663&single=true&output=tsv";
+      const response = await fetch(verifyUrl);
+      if (!response.ok) {
+        throw new Error("Unable to reach verification service.");
+      }
+      
+      const text = await response.text();
+      Papa.parse(text, {
+        header: false,
+        skipEmptyLines: true,
+        delimiter: '\t',
+        complete: (results) => {
+          const rows = results.data as string[][];
+          
+          const matchedRow = rows.find(r => {
+            const colA = String(r[0] || '').trim();
+            return colA.toLowerCase() === trimmedName.toLowerCase();
+          });
+
+          if (!matchedRow) {
+            setVerificationError(
+              <span>
+                Traveller Name and ID and does not match, Please consult{" "}
+                <a 
+                  href="https://www.nms-agt.com/support/traveller-id" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-[#FF0500] hover:underline font-bold"
+                >
+                  AGT Support
+                </a>
+              </span>
+            );
+            setIsVerifying(false);
+            setPopupMsg("Verification unsuccessful");
+            alert("Verification unsuccessful");
+            return;
+          }
+
+          const colBVal = String(matchedRow[1] || '').trim();
+          const decodedB = decodeXOR(colBVal);
+
+          const nameMatches = String(matchedRow[0] || '').trim().toLowerCase() === trimmedName.toLowerCase();
+          const idMatches = decodedB.trim().toLowerCase() === trimmedId.toLowerCase();
+
+          if (nameMatches && idMatches) {
+            const colCVal = String(matchedRow[2] || '').trim();
+            const secLevelNumber = getSecurityLevelNumber(colCVal);
+
+            const sName = setCookie('traveller_name', matchedRow[0].trim());
+            const sId = setCookie('traveller_id', trimmedId);
+            const sLevel = setCookie('security_level', String(secLevelNumber));
+
+            setVerifiedName(matchedRow[0].trim());
+            setVerifiedID(trimmedId);
+            setSecurityLevel(secLevelNumber);
+            setVerificationError(null);
+            setIsVerifying(false);
+
+            findRecord(data, columns, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, secLevelNumber);
+
+            if (sName && sId && sLevel) {
+              setPopupMsg("Verification successful, setting saved");
+              alert("Verification successful, setting saved");
+            } else {
+              setPopupMsg("Verification successful, setting save error");
+              alert("Verification successful, setting save error");
+            }
+          } else {
+            setVerificationError(
+              <span>
+                Traveller Name and ID and does not match, Please consult{" "}
+                <a 
+                  href="https://www.nms-agt.com/support/traveller-id" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-[#FF0500] hover:underline font-bold"
+                >
+                  AGT Support
+                </a>
+              </span>
+            );
+            setIsVerifying(false);
+            setPopupMsg("Verification unsuccessful");
+            alert("Verification unsuccessful");
+          }
+        },
+        error: (err) => {
+          throw err;
+        }
+      });
+    } catch (err: any) {
+      console.error(err);
+      setVerificationError("Network verification error occurred. Please try again.");
+      setIsVerifying(false);
+      setPopupMsg("Verification unsuccessful");
+      alert("Verification unsuccessful");
+    }
+  };
+
+  const handleClearVerification = () => {
+    const dName = deleteCookie('traveller_name');
+    const dId = deleteCookie('traveller_id');
+    const dLevel = deleteCookie('security_level');
+    
+    setTravellerNameInput('');
+    setTravellerIdInput('');
+    setVerifiedName(null);
+    setVerifiedID(null);
+    setSecurityLevel(0);
+    setVerificationError(null);
+    
+    findRecord(data, columns, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, 0);
+
+    if (dName && dId && dLevel) {
+      setPopupMsg("Clearing successful");
+      alert("Clearing successful");
+    } else {
+      setPopupMsg("Clearing failed");
+      alert("Clearing failed");
+    }
+  };
   
   // Background audio is muted by default (saved === 'true' only)
   const [audioEnabled, setAudioEnabled] = useState<boolean>(() => {
@@ -886,6 +1199,9 @@ export default function App() {
   const [startDate, setStartDate] = useState<string>('');
   const [endDate, setEndDate] = useState<string>('');
 
+  // Expandable panel state for custom report columns
+  const [customColsExpanded, setCustomColsExpanded] = useState<boolean>(false);
+
   // Extract reports loading spinner overlay
   const [showExtractorSpinner, setShowExtractorSpinner] = useState(false);
 
@@ -894,10 +1210,18 @@ export default function App() {
   
   const audioRef = useRef<HTMLAudioElement>(null);
 
+  // References and state for top dual horizontal scrollbar in results table
+  const topScrollRef = useRef<HTMLDivElement>(null);
+  const bottomScrollRef = useRef<HTMLDivElement>(null);
+  const tableRef = useRef<HTMLTableElement>(null);
+  const [tableWidth, setTableWidth] = useState<number>(0);
+  const [containerWidth, setContainerWidth] = useState<number>(0);
+
   // Apply Font Scaling Factor across the entire application
   useEffect(() => {
     let scalePct = '100%';
-    if (fontScale === '1.5x') scalePct = '150%';
+    if (fontScale === '1.25x') scalePct = '125%';
+    else if (fontScale === '1.5x') scalePct = '150%';
     else if (fontScale === '2x') scalePct = '200%';
     else if (fontScale === '2.5x') scalePct = '250%';
     else if (fontScale === '3x') scalePct = '300%';
@@ -933,6 +1257,17 @@ export default function App() {
     data.forEach(row => {
       const v = String(row._raw?.[3] || '').trim();
       if (v && v.toLowerCase() !== 'null' && v.toLowerCase() !== '#n/a') {
+        s.add(v);
+      }
+    });
+    return Array.from(s).sort();
+  }, [data]);
+
+  const uniqueBuilders = useMemo(() => {
+    const s = new Set<string>();
+    data.forEach(row => {
+      const v = String(row._raw?.[8] || '').trim();
+      if (v && v.toLowerCase() !== 'null' && v.toLowerCase() !== '#n/a' && v.toLowerCase() !== '-') {
         s.add(v);
       }
     });
@@ -1010,6 +1345,7 @@ export default function App() {
     style?: string; 
     type?: string; 
     includeDeconstructed?: boolean;
+    builder?: string;
   }) => {
     if (!sheetUrl) {
       setError('Please provide a Google Sheet CSV URL in settings.');
@@ -1113,6 +1449,7 @@ export default function App() {
           const currentStyle = overrides?.style ?? selectedStyle;
           const currentType = overrides?.type ?? selectedType;
           const currentDeconstructed = overrides?.includeDeconstructed ?? includeDeconstructed;
+          const currentBuilder = overrides?.builder ?? selectedBuilderName;
 
           findRecord(
             processedData, 
@@ -1125,7 +1462,8 @@ export default function App() {
             currentType, 
             currentDeconstructed,
             startDate,
-            endDate
+            endDate,
+            currentBuilder
           );
           setLoading(false);
         },
@@ -1163,7 +1501,10 @@ export default function App() {
     typeTerm?: string,
     includeDeconstructedToggle?: boolean,
     surveyStart?: string,
-    surveyEnd?: string
+    surveyEnd?: string,
+    builderTerm?: string,
+    overrideSecurityLevel?: number,
+    overrideSecFilter?: 'all' | 'omit_public' | 'omit_classified'
   ) => {
     const rawCivTerm = (civTerm ?? searchKey).trim();
     const currentCivTerm = rawCivTerm.toLowerCase();
@@ -1175,7 +1516,11 @@ export default function App() {
     const currentIncludeDeconstructed = includeDeconstructedToggle ?? includeDeconstructed;
     const sStart = surveyStart !== undefined ? surveyStart : startDate;
     const sEnd = surveyEnd !== undefined ? surveyEnd : endDate;
+    const currentBuilderTerm = (builderTerm ?? selectedBuilderName).trim().toLowerCase();
+    const currentSecFilter = overrideSecFilter ?? securityOmitFilter;
     
+    let omittedCount = 0;
+
     if (
       (!currentCivTerm || currentCivTerm === 'all') && 
       currentGalTerm === 'all' && 
@@ -1183,11 +1528,15 @@ export default function App() {
       currentCatTerm === 'all' && 
       currentStyleTerm === 'all' && 
       currentTypeTerm === 'all' && 
+      (!currentBuilderTerm || currentBuilderTerm === 'all') &&
       currentIncludeDeconstructed && 
       !sStart &&
       !sEnd &&
       !sourceCols.length
-    ) return;
+    ) {
+      setClassifiedOmittedCount(0);
+      return;
+    }
 
     // Matching columns:
     // Galaxy: Col E (index 4)
@@ -1288,7 +1637,47 @@ export default function App() {
         }
       }
 
-      return civMatch && galMatch && regMatch && categoryMatch && deconstructedMatch && dateMatch;
+      // Builder match (I)
+      const builderVal = String(rawRow[8] || '').toLowerCase().trim();
+      const builderMatch = currentBuilderTerm === 'all' || currentBuilderTerm === ''
+        ? true
+        : builderVal.includes(currentBuilderTerm);
+
+      // Security level matching (Col BJ - column 62 - index 61 in rawRow)
+      const recordSecVal = String(rawRow[61] || '').trim();
+      const recordSecLevel = getSecurityLevelNumber(recordSecVal);
+      
+      let activeSecLevel = 0;
+      if (overrideSecurityLevel !== undefined) {
+        activeSecLevel = overrideSecurityLevel;
+      } else if (verifiedName && verifiedID) {
+        activeSecLevel = securityLevel;
+      } else {
+        activeSecLevel = 0;
+      }
+      
+      let securityMatch = false;
+      const isUserCleared = !!(verifiedName && verifiedID && securityLevel > 0);
+
+      if (isUserCleared) {
+        if (currentSecFilter === 'omit_public') {
+          securityMatch = recordSecLevel > 0 && recordSecLevel <= activeSecLevel;
+        } else if (currentSecFilter === 'omit_classified') {
+          securityMatch = recordSecLevel === 0;
+        } else {
+          securityMatch = recordSecLevel <= activeSecLevel;
+        }
+      } else {
+        securityMatch = recordSecLevel === 0;
+      }
+
+      const matchedAllOthers = !!(civMatch && galMatch && regMatch && categoryMatch && deconstructedMatch && dateMatch && builderMatch);
+
+      if (matchedAllOthers && !securityMatch && recordSecLevel > 0) {
+        omittedCount++;
+      }
+
+      return matchedAllOthers && securityMatch;
     });
 
 
@@ -1310,6 +1699,8 @@ export default function App() {
       return systemA.localeCompare(systemB);
     });
 
+    setClassifiedOmittedCount(omittedCount);
+
     if (sortedMatches.length > 0) {
       setMatchedRecords(sortedMatches);
       setCurrentPage(1);
@@ -1321,13 +1712,53 @@ export default function App() {
     }
   };
 
-  const paginatedRecords = useMemo(() => {
-    if (matchedRecords.length <= 15) {
+  const sortedMatchedRecords = useMemo(() => {
+    if (!sortColumn) {
       return matchedRecords;
     }
+    
+    // Find the column configuration
+    const colConfig = columns.find(c => c.name === sortColumn);
+    const colIdx = colConfig ? colConfig.rawIndex : undefined;
+
+    return [...matchedRecords].sort((a, b) => {
+      let valA = a[sortColumn];
+      let valB = b[sortColumn];
+
+      // Format display values for consistent natural comparison
+      let dispA = getDisplayValue(valA, colIdx);
+      let dispB = getDisplayValue(valB, colIdx);
+
+      // Handle numbers comparison if both can be parsed as numbers
+      const cleanA = dispA.replace(/,/g, '');
+      const cleanB = dispB.replace(/,/g, '');
+      const numA = Number(cleanA);
+      const numB = Number(cleanB);
+      let comparison = 0;
+
+      if (!isNaN(numA) && !isNaN(numB) && cleanA !== '' && cleanB !== '') {
+        comparison = numA - numB;
+      } else {
+        comparison = dispA.toLowerCase().localeCompare(dispB.toLowerCase());
+      }
+
+      return sortDirection === 'asc' ? comparison : -comparison;
+    });
+  }, [matchedRecords, sortColumn, sortDirection, columns]);
+
+  const handleSortColumn = (columnName: string) => {
+    if (sortColumn === columnName) {
+      setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortColumn(columnName);
+      setSortDirection('asc');
+    }
+  };
+
+  const paginatedRecords = useMemo(() => {
     const start = (currentPage - 1) * pageSize;
-    return matchedRecords.slice(start, start + pageSize);
-  }, [matchedRecords, currentPage, pageSize]);
+    return sortedMatchedRecords.slice(start, start + pageSize);
+  }, [sortedMatchedRecords, currentPage, pageSize]);
 
   const totalPages = Math.ceil(matchedRecords.length / pageSize);
 
@@ -1365,343 +1796,438 @@ export default function App() {
   };
 
   const downloadFullReportPdf = () => {
-    if (matchedRecords.length === 0) return;
-
-    const activeCols = columns.filter(col => col.enabled);
-
-    const totalUsableWidth = 277; // 297mm - 20mm margins
-
-    // Temporary document/text setup for exact font dimensions and line splitting
-    const dummyDoc = new jsPDF('l', 'mm', 'a4');
-    dummyDoc.setFont("Helvetica", "normal");
-    dummyDoc.setFontSize(6.5);
-
-    // Helper to calculate minimum width for a cell to wrap to at most targetLines (e.g. 2 lines)
-    const getCellMinWidthForLines = (text: string, isHeader: boolean, targetLines = 2, cellPadding = 1.2) => {
-      const cleanText = text || '';
-      dummyDoc.setFont("Helvetica", isHeader ? "bold" : "normal");
-      dummyDoc.setFontSize(6.5);
-      const textWidth = dummyDoc.getTextWidth(cleanText);
-      const internalPadding = cellPadding * 2;
-      
-      const singleLineWidth = textWidth + internalPadding;
-      
-      // Binary search for minimum required column width to fit content in <= targetLines
-      let low = 8; // absolute min column width in mm
-      let high = Math.max(8, singleLineWidth);
-      let best = high;
-      
-      while (low <= high) {
-        const mid = (low + high) / 2;
-        const maxTextWidth = mid - internalPadding;
-        if (maxTextWidth <= 0) {
-          low = mid + 0.1;
-          continue;
-        }
-        const lines = dummyDoc.splitTextToSize(cleanText, maxTextWidth);
-        if (lines.length <= targetLines) {
-          best = mid;
-          high = mid - 0.1;
-        } else {
-          low = mid + 0.1;
-        }
-      }
-      return best;
-    };
-
-    const getIdealWidth = (text: string, isHeader: boolean, cellPadding = 1.2) => {
-      const cleanText = text || '';
-      dummyDoc.setFont("Helvetica", isHeader ? "bold" : "normal");
-      dummyDoc.setFontSize(6.5);
-      return Math.max(8, dummyDoc.getTextWidth(cleanText) + cellPadding * 2);
-    };
-
-    const tempUrlMap = new Map<string, string>();
-    const tempTableData = matchedRecords.map((record, rIdx) => 
-      activeCols.map((col, cIdx) => {
-        const rawVal = record[col.name];
-        const val = getDisplayValue(rawVal, col.rawIndex);
-        
-        if (String(rawVal || '').startsWith('http')) {
-          tempUrlMap.set(`${rIdx}-${cIdx}`, String(rawVal));
-          return 'LINK';
-        }
-        return val || '-';
-      })
-    );
-
-    // Add total row to temporary table representation
-    const countFieldName = columns[0]?.name;
-    const tempTotalRow = activeCols.map(col => {
-      if (col.name === countFieldName) return `Count: ${matchedRecords.length}`;
-      return '';
-    });
-    tempTableData.push(tempTotalRow);
-
-    // Calculate minimum required widths and ideal widths for all columns
-    const minWidths = activeCols.map((col, cIdx) => {
-      // Analyze header
-      let colMin = getCellMinWidthForLines(col.name, true, 2);
-      // Analyze body rows + total row
-      for (let rIdx = 0; rIdx < tempTableData.length; rIdx++) {
-        const cellText = tempTableData[rIdx][cIdx];
-        const cellMin = getCellMinWidthForLines(cellText, false, 2);
-        if (cellMin > colMin) {
-          colMin = cellMin;
-        }
-      }
-      return colMin;
-    });
-
-    const idealWidths = activeCols.map((col, cIdx) => {
-      // Analyze header
-      let colIdeal = getIdealWidth(col.name, true);
-      // Analyze body rows + total row
-      for (let rIdx = 0; rIdx < tempTableData.length; rIdx++) {
-        const cellText = tempTableData[rIdx][cIdx];
-        const cellIdeal = getIdealWidth(cellText, false);
-        if (cellIdeal > colIdeal) {
-          colIdeal = cellIdeal;
-        }
-      }
-      return colIdeal;
-    });
-
-    const sumMinW = minWidths.reduce((sum, w) => sum + w, 0);
-
-    // Custom report check for column limits
-    if (sumMinW > totalUsableWidth) {
-      if (reportType === 'custom') {
-        setPdfError("Too many columns for PDF layout");
-        return; // Abort PDF generation!
-      }
+    if (!verifiedName || !verifiedID || securityLevel <= 0) {
+      setPopupMsg("PDF Report and Download CSV are only available to Registered AGT Travellers. Check your log in details in the Settings menu.");
+      return;
     }
+    if (sortedMatchedRecords.length === 0) return;
 
-    // Now calculate the actual column widths to minimize line wrapping
-    const finalWidths: number[] = [];
-    if (sumMinW > totalUsableWidth) {
-      // Scale everything down to fit perfectly within totalUsableWidth (only for non-custom reports that exceed)
-      const scale = totalUsableWidth / sumMinW;
-      minWidths.forEach(w => {
-        finalWidths.push(w * scale);
-      });
-    } else {
-      // We have leftover space! Let's distribute it beautifully.
-      const leftover = totalUsableWidth - sumMinW;
-      let sumDiff = 0;
-      const diffs = minWidths.map((w, idx) => {
-        const d = Math.max(0, idealWidths[idx] - w);
-        sumDiff += d;
-        return d;
-      });
+    setIsGeneratingFile(true);
 
-      if (sumDiff > 0) {
-        minWidths.forEach((w, idx) => {
-          const extra = leftover * (diffs[idx] / sumDiff);
-          finalWidths.push(w + extra);
-        });
-      } else {
-        // If everything is already at single-line ideal width, distribute proportionally to minWidths
-        minWidths.forEach(w => {
-          const extra = leftover * (w / sumMinW);
-          finalWidths.push(w + extra);
-        });
-      }
-    }
-
-    const doc = new jsPDF('l', 'mm', 'a4'); // Landscape for tables
-    const displayId = searchKey || 'Bulk';
-    
-    // Draw logo helper for multiple pages
-    const drawLogoOnDoc = (pdfDoc: any, x: number, y: number, w: number, h: number) => {
+    setTimeout(() => {
       try {
-        const logoImg = document.querySelector('img[alt="AGT Logo"]') as HTMLImageElement;
-        if (logoImg && logoImg.complete && logoImg.naturalWidth > 0) {
-          pdfDoc.addImage(logoImg, 'PNG', x, y, w, h, undefined, 'FAST');
+        const activeCols = columns.filter(col => col.enabled);
+
+        const totalUsableWidth = 277; // 297mm - 20mm margins
+
+        const getTargetBodyLines = (colName: string, rawIndex: number) => {
+          if (reportType === 'simple' || reportType === 'custom') {
+            const nameLower = (colName || '').toLowerCase().trim();
+            if (nameLower === 'coordinates' || rawIndex === 5) {
+              return 1;
+            }
+            if (nameLower === 'builder' || rawIndex === 8) {
+              return 1;
+            }
+            return 2;
+          }
+          return 2;
+        };
+
+        // Temporary document/text setup for exact font dimensions and line splitting
+        const dummyDoc = new jsPDF('l', 'mm', 'a4');
+        dummyDoc.setFont("Helvetica", "normal");
+        dummyDoc.setFontSize(6.5);
+
+        // Helper to calculate minimum width for a cell to wrap to at most targetLines (e.g. 2 lines)
+        const getCellMinWidthForLines = (text: string, isHeader: boolean, targetLines = 2, cellPadding = 1.2, colName?: string, rawIndex?: number) => {
+          const cleanText = text || '';
+          dummyDoc.setFont("Helvetica", isHeader ? "bold" : "normal");
+          dummyDoc.setFontSize(6.5);
+          const textWidth = dummyDoc.getTextWidth(cleanText);
+          const internalPadding = cellPadding * 2;
+          
+          const singleLineWidth = textWidth + internalPadding;
+          
+          const nameL = (colName || '').toLowerCase().trim();
+          const isOneLineOnly = nameL === 'coordinates' || rawIndex === 5 || nameL === 'builder' || rawIndex === 8;
+          
+          const effTargetLines = isOneLineOnly ? 1 : targetLines;
+          
+          if (effTargetLines === 1) {
+            return Math.max(8, singleLineWidth);
+          }
+          
+          // To allow lines to break at Natural word breaks only, the column width must fit the longest word in that text.
+          const words = cleanText.split(/\s+/).filter(w => w.length > 0);
+          let longestWordWidth = 0;
+          words.forEach(word => {
+            const wWidth = dummyDoc.getTextWidth(word);
+            if (wWidth > longestWordWidth) {
+              longestWordWidth = wWidth;
+            }
+          });
+          const minWordRequiredWidth = longestWordWidth + internalPadding;
+          
+          // Binary search for minimum required column width to fit content in <= effTargetLines
+          let low = Math.max(8, minWordRequiredWidth);
+          let high = Math.max(low, singleLineWidth);
+          let best = high;
+          
+          while (low <= high) {
+            const mid = (low + high) / 2;
+            const maxTextWidth = mid - internalPadding;
+            if (maxTextWidth <= 0) {
+              low = mid + 0.1;
+              continue;
+            }
+            const lines = dummyDoc.splitTextToSize(cleanText, maxTextWidth);
+            if (lines.length <= effTargetLines) {
+              best = mid;
+              high = mid - 0.1;
+            } else {
+              low = mid + 0.1;
+            }
+          }
+          return best;
+        };
+
+        const getIdealWidth = (text: string, isHeader: boolean, cellPadding = 1.2) => {
+          const cleanText = text || '';
+          dummyDoc.setFont("Helvetica", isHeader ? "bold" : "normal");
+          dummyDoc.setFontSize(6.5);
+          return Math.max(8, dummyDoc.getTextWidth(cleanText) + cellPadding * 2);
+        };
+
+        const tempUrlMap = new Map<string, string>();
+        const tempTableData = sortedMatchedRecords.map((record, rIdx) => 
+          activeCols.map((col, cIdx) => {
+            const rawVal = record[col.name];
+            const val = getDisplayValue(rawVal, col.rawIndex);
+            
+            if (isUrlColumn(col.rawIndex, col.name, rawVal)) {
+              if (rawVal && String(rawVal).trim() !== '') {
+                tempUrlMap.set(`${rIdx}-${cIdx}`, String(rawVal));
+                return 'LINK';
+              }
+              return '-';
+            }
+            return val || '-';
+          })
+        );
+
+        // Add total row to temporary table representation
+        const countFieldName = columns[0]?.name;
+        const tempTotalRow = activeCols.map(col => {
+          if (col.name === countFieldName) return `Count: ${sortedMatchedRecords.length}`;
+          return '';
+        });
+        tempTableData.push(tempTotalRow);
+
+        // Calculate minimum required widths and ideal widths for all columns
+        const minWidths = activeCols.map((col, cIdx) => {
+          // Analyze header - allow URL columns to wrap up to 3 lines
+          const targetHeaderLines = isUrlColumn(col.rawIndex, col.name) ? 3 : 2;
+          let colMin = getCellMinWidthForLines(col.name, true, targetHeaderLines, 1.2, col.name, col.rawIndex);
+          const targetBodyLines = getTargetBodyLines(col.name, col.rawIndex);
+          // Analyze body rows + total row
+          for (let rIdx = 0; rIdx < tempTableData.length; rIdx++) {
+            const cellText = tempTableData[rIdx][cIdx];
+            const cellMin = getCellMinWidthForLines(cellText, false, targetBodyLines, 1.2, col.name, col.rawIndex);
+            if (cellMin > colMin) {
+              colMin = cellMin;
+            }
+          }
+          return colMin;
+        });
+
+        const idealWidths = activeCols.map((col, cIdx) => {
+          const isUrl = isUrlColumn(col.rawIndex, col.name);
+          // Analyze header - for URL columns, bound ideal width by min width
+          let colIdeal = isUrl ? minWidths[cIdx] : getIdealWidth(col.name, true);
+          // Analyze body rows + total row
+          for (let rIdx = 0; rIdx < tempTableData.length; rIdx++) {
+            const cellText = tempTableData[rIdx][cIdx];
+            const cellIdeal = getIdealWidth(cellText, false);
+            if (cellIdeal > colIdeal) {
+              colIdeal = cellIdeal;
+            }
+          }
+          return colIdeal;
+        });
+
+        const sumMinW = minWidths.reduce((sum, w) => sum + w, 0);
+
+        // Custom report check for column limits
+        if (sumMinW > totalUsableWidth) {
+          if (reportType === 'custom') {
+            setPdfError("Too many columns for PDF layout");
+            setIsGeneratingFile(false);
+            return; // Abort PDF generation!
+          }
+        }
+
+        // Now calculate the actual column widths to minimize line wrapping
+        const finalWidths: number[] = [];
+        if (sumMinW > totalUsableWidth) {
+          // Scale everything down to fit perfectly within totalUsableWidth (only for non-custom reports that exceed)
+          const scale = totalUsableWidth / sumMinW;
+          minWidths.forEach(w => {
+            finalWidths.push(w * scale);
+          });
         } else {
-          const tempImg = new Image();
-          tempImg.src = logoSrc;
-          pdfDoc.addImage(tempImg, 'PNG', x, y, w, h, undefined, 'FAST');
+          // We have leftover space! Let's distribute it beautifully.
+          const leftover = totalUsableWidth - sumMinW;
+          let sumDiff = 0;
+          const diffs = minWidths.map((w, idx) => {
+            const d = Math.max(0, idealWidths[idx] - w);
+            sumDiff += d;
+            return d;
+          });
+
+          if (sumDiff > 0) {
+            minWidths.forEach((w, idx) => {
+              const extra = leftover * (diffs[idx] / sumDiff);
+              finalWidths.push(w + extra);
+            });
+          } else {
+            // If everything is already at single-line ideal width, distribute proportionally to minWidths
+            minWidths.forEach(w => {
+              const extra = leftover * (w / sumMinW);
+              finalWidths.push(w + extra);
+            });
+          }
         }
-      } catch (err) {
-        console.error('Failed to add logo image to PDF:', err);
-      }
-    };
 
-    // 1. Cover Page
-    // Centered image about 20% from top of A4 Landscape (210mm height * 0.20 = 42mm)
-    const coverLogoWidth = 32;
-    const coverLogoHeight = 32;
-    const coverCenterX = (doc.internal.pageSize.width - coverLogoWidth) / 2;
-    drawLogoOnDoc(doc, coverCenterX, 38, coverLogoWidth, coverLogoHeight);
-
-    // Below it: Title "AGT Base Report" in hex color E25530
-    doc.setFont("Helvetica", "bold");
-    doc.setFontSize(26);
-    doc.setTextColor(226, 85, 48); // hex #E25530
-    doc.text("AGT Base Report", doc.internal.pageSize.width / 2, 85, { align: "center" });
-
-    // Header horizontal line in theme color #FF0500
-    doc.setDrawColor(255, 5, 0);
-    doc.setLineWidth(0.6);
-    doc.line(30, 94, doc.internal.pageSize.width - 30, 94);
-
-    // Below horizontal divider: Filter options
-    doc.setFont("Helvetica", "normal");
-    doc.setFontSize(10);
-    doc.setTextColor(0, 0, 0);
-
-    let coverY = 105;
-    const coverLineHeight = 7;
-
-    const civFilterVal = searchKey && searchKey !== 'All' ? searchKey : 'All';
-    doc.text(`Civilization: ${civFilterVal}`, 50, coverY); coverY += coverLineHeight;
-    doc.text(`Galaxy: ${selectedGalaxy || 'All'}`, 50, coverY); coverY += coverLineHeight;
-    doc.text(`Region: ${selectedRegion || 'All'}`, 50, coverY); coverY += coverLineHeight;
-
-    if (planetCategory === 'style' && selectedStyle !== 'All') {
-      doc.text(`Base Style: ${selectedStyle}`, 50, coverY); coverY += coverLineHeight;
-    } else if (planetCategory === 'type' && selectedType !== 'All') {
-      doc.text(`Base Type: ${selectedType}`, 50, coverY); coverY += coverLineHeight;
-    }
-
-    const surveyRangeStr = startDate || endDate ? `${startDate || 'Open'} to ${endDate || 'Open'}` : 'All';
-    doc.text(`Survey Date Range: ${surveyRangeStr}`, 50, coverY); coverY += coverLineHeight;
-    doc.text(`Deconstructed base record included: ${includeDeconstructed ? 'yes' : 'no'}`, 50, coverY); coverY += coverLineHeight;
-
-    // Report creation date line "Report Date:" <today's system date>
-    doc.text(`Report Date: ${new Date().toLocaleDateString()}`, 50, coverY);
-
-    // Add page break to hold table data starting on Page 2
-    doc.addPage();
-    
-    const urlMap = new Map<string, string>();
-    
-    const tableData = matchedRecords.map((record, rIdx) => 
-      activeCols.map((col, cIdx) => {
-        const rawVal = record[col.name];
-        const val = getDisplayValue(rawVal, col.rawIndex);
+        const doc = new jsPDF('l', 'mm', 'a4'); // Landscape for tables
+        const displayId = searchKey || 'Bulk';
         
-        if (String(rawVal || '').startsWith('http')) {
-          urlMap.set(`${rIdx}-${cIdx}`, String(rawVal));
-          return 'LINK';
+        // Draw logo helper for multiple pages
+        const drawLogoOnDoc = (pdfDoc: any, x: number, y: number, w: number, h: number) => {
+          try {
+            const logoImg = document.querySelector('img[alt="AGT Logo"]') as HTMLImageElement;
+            if (logoImg && logoImg.complete && logoImg.naturalWidth > 0) {
+              pdfDoc.addImage(logoImg, 'PNG', x, y, w, h, undefined, 'FAST');
+            } else {
+              const tempImg = new Image();
+              tempImg.src = logoSrc;
+              pdfDoc.addImage(tempImg, 'PNG', x, y, w, h, undefined, 'FAST');
+            }
+          } catch (err) {
+            console.error('Failed to add logo image to PDF:', err);
+          }
+        };
+
+        // 1. Cover Page
+        // Calculate highest security level in sortedMatchedRecords
+        let highestSecLevel = 0;
+        sortedMatchedRecords.forEach(record => {
+          const rawRow = record._raw || [];
+          const recordSecVal = String(rawRow[61] || '').trim();
+          const lvl = getSecurityLevelNumber(recordSecVal);
+          if (lvl > highestSecLevel) {
+            highestSecLevel = lvl;
+          }
+        });
+
+        // Centered image about 20% from top of A4 Landscape (210mm height * 0.20 = 42mm)
+        const coverLogoWidth = 32;
+        const coverLogoHeight = 32;
+        const coverCenterX = (doc.internal.pageSize.width - coverLogoWidth) / 2;
+        drawLogoOnDoc(doc, coverCenterX, 38, coverLogoWidth, coverLogoHeight);
+
+        // Put highest security level warning if any record has security level > 0
+        if (highestSecLevel > 0) {
+          const highestSecText = getSecurityLevelInfo(highestSecLevel).text;
+          const warningY = (20 + 38) / 2; // 29mm - halfway between 20mm margin and 38mm logo logo
+          doc.setFont("Helvetica", "bold");
+          doc.setFontSize(11);
+          doc.setTextColor(255, 0, 0); // Red
+          doc.text(`This report contains ${highestSecText} AGT Intelligence.`, doc.internal.pageSize.width / 2, warningY, { align: "center" });
         }
-        return val || '-';
-      })
-    );
 
-    // Add total row to PDF
-    const totalRow = activeCols.map(col => {
-      if (col.name === countFieldName) return `Count: ${matchedRecords.length}`;
-      return '';
-    });
-    tableData.push(totalRow);
+        // Below it: Title "AGT Base Report" in hex color E25530
+        doc.setFont("Helvetica", "bold");
+        doc.setFontSize(26);
+        doc.setTextColor(226, 85, 48); // hex #E25530
+        doc.text("AGT Base Report", doc.internal.pageSize.width / 2, 85, { align: "center" });
 
-    const colStyles: Record<number, { cellWidth: number }> = {};
-    activeCols.forEach((col, idx) => {
-      colStyles[idx] = { cellWidth: finalWidths[idx] };
-    });
-
-    autoTable(doc, {
-      startY: 22,
-      head: [activeCols.map(col => col.name)],
-      body: tableData,
-      theme: 'grid',
-      styles: { cellPadding: 1.2, fontSize: 6.5, overflow: 'linebreak' },
-      headStyles: { fillColor: [240, 240, 240], textColor: [0, 0, 0], fontSize: 6.5, fontStyle: 'bold' },
-      bodyStyles: { fontSize: 6.5, textColor: [0, 0, 0], fillColor: [255, 255, 255] },
-      alternateRowStyles: { fillColor: [255, 255, 255] },
-      footStyles: { fillColor: [255, 255, 255], textColor: [0, 0, 0], fontStyle: 'bold', fontSize: 6.5 },
-      margin: { top: 22, left: 10, right: 10, bottom: 16 },
-      columnStyles: colStyles,
-      didParseCell: (data) => {
-        if (data.row.index === tableData.length - 1) {
-          data.cell.styles.fillColor = [255, 255, 255];
-          data.cell.styles.textColor = [0, 0, 0];
-          data.cell.styles.fontStyle = 'bold';
-        }
-        
-        const key = `${data.row.index}-${data.column.index}`;
-        if (urlMap.has(key)) {
-          data.cell.styles.textColor = [0, 0, 255];
-        }
-      },
-      didDrawCell: (data) => {
-        const key = `${data.row.index}-${data.column.index}`;
-        const url = urlMap.get(key);
-        if (url && data.section === 'body') {
-          doc.link(data.cell.x, data.cell.y, data.cell.width, data.cell.height, { url });
-        }
-      },
-      didDrawPage: (data) => {
-        const pageNum = doc.getNumberOfPages();
-        if (pageNum === 1) return; // Skip cover page headers
-
-        // Page Header
-        drawLogoOnDoc(doc, 10, 6, 8, 8);
-        doc.setFont("Helvetica", "normal");
-        doc.setFontSize(8.5);
-        doc.setTextColor(0, 0, 0);
-        const headerText = `AGT Base Report - Civ: ${civFilterVal} / Galaxy: ${selectedGalaxy || 'All'} / Region: ${selectedRegion || 'All'}`;
-        doc.text(headerText, 20, 11);
-        doc.text(`Page ${pageNum - 1}`, doc.internal.pageSize.width - 10, 11, { align: 'right' });
-
-        // Header divider line in hex color #FF0500
+        // Header horizontal line in theme color #FF0500
         doc.setDrawColor(255, 5, 0);
-        doc.setLineWidth(0.3);
-        doc.line(10, 16, doc.internal.pageSize.width - 10, 16);
+        doc.setLineWidth(0.6);
+        doc.line(30, 94, doc.internal.pageSize.width - 30, 94);
 
-        // Page Footer divider line in hex color #FF0500
-        doc.line(10, doc.internal.pageSize.height - 12, doc.internal.pageSize.width - 10, doc.internal.pageSize.height - 12);
-
-        // Footer Text
+        // Below horizontal divider: Filter options
+        doc.setFont("Helvetica", "normal");
+        doc.setFontSize(10);
         doc.setTextColor(0, 0, 0);
-        doc.setFontSize(8);
-        const leftFooterStr = `Survey Date Range: ${surveyRangeStr}`;
-        doc.text(leftFooterStr, 10, doc.internal.pageSize.height - 7);
 
-        const rightFooterStr = `Report Date: ${new Date().toLocaleDateString()}`;
-        doc.text(rightFooterStr, doc.internal.pageSize.width - 10, doc.internal.pageSize.height - 7, { align: 'right' });
+        let coverY = 105;
+        const coverLineHeight = 7;
+
+        const civFilterVal = searchKey && searchKey !== 'All' ? searchKey : 'All';
+        doc.text(`Civilization: ${civFilterVal}`, 50, coverY); coverY += coverLineHeight;
+        doc.text(`Galaxy: ${selectedGalaxy || 'All'}`, 50, coverY); coverY += coverLineHeight;
+        doc.text(`Region: ${selectedRegion || 'All'}`, 50, coverY); coverY += coverLineHeight;
+
+        if (planetCategory === 'style' && selectedStyle !== 'All') {
+          doc.text(`Base Style: ${selectedStyle}`, 50, coverY); coverY += coverLineHeight;
+        } else if (planetCategory === 'type' && selectedType !== 'All') {
+          doc.text(`Base Type: ${selectedType}`, 50, coverY); coverY += coverLineHeight;
+        }
+
+        const surveyRangeStr = startDate || endDate ? `${startDate || 'Open'} to ${endDate || 'Open'}` : 'All';
+        doc.text(`Survey Date Range: ${surveyRangeStr}`, 50, coverY); coverY += coverLineHeight;
+        doc.text(`Deconstructed base record included: ${includeDeconstructed ? 'yes' : 'no'}`, 50, coverY); coverY += coverLineHeight;
+
+        // Report creation date line "Report Date:" <today's system date>
+        doc.text(`Report Date: ${new Date().toLocaleDateString()}`, 50, coverY);
+
+        // Add page break to hold table data starting on Page 2
+        doc.addPage();
+        
+        const urlMap = new Map<string, string>();
+        
+        const tableData = sortedMatchedRecords.map((record, rIdx) => 
+          activeCols.map((col, cIdx) => {
+            const rawVal = record[col.name];
+            const val = getDisplayValue(rawVal, col.rawIndex);
+            
+            if (isUrlColumn(col.rawIndex, col.name, rawVal)) {
+              if (rawVal && String(rawVal).trim() !== '') {
+                urlMap.set(`${rIdx}-${cIdx}`, String(rawVal));
+                return 'LINK';
+              }
+              return '-';
+            }
+            return val || '-';
+          })
+        );
+
+        // Add total row to PDF
+        const totalRow = activeCols.map(col => {
+          if (col.name === countFieldName) return `Count: ${sortedMatchedRecords.length}`;
+          return '';
+        });
+        tableData.push(totalRow);
+
+        const colStyles: Record<number, { cellWidth: number }> = {};
+        activeCols.forEach((col, idx) => {
+          colStyles[idx] = { cellWidth: finalWidths[idx] };
+        });
+
+        autoTable(doc, {
+          startY: 22,
+          head: [activeCols.map(col => col.name)],
+          body: tableData,
+          theme: 'grid',
+          styles: { cellPadding: 1.2, fontSize: 6.5, overflow: 'linebreak' },
+          headStyles: { fillColor: [240, 240, 240], textColor: [0, 0, 0], fontSize: 6.5, fontStyle: 'bold' },
+          bodyStyles: { fontSize: 6.5, textColor: [0, 0, 0], fillColor: [255, 255, 255] },
+          alternateRowStyles: { fillColor: [255, 255, 255] },
+          footStyles: { fillColor: [255, 255, 255], textColor: [0, 0, 0], fontStyle: 'bold', fontSize: 6.5 },
+          margin: { top: 22, left: 10, right: 10, bottom: 16 },
+          columnStyles: colStyles,
+          didParseCell: (data) => {
+            if (data.section === 'head') {
+              data.cell.styles.textColor = [0, 0, 0];
+            } else if (data.row.index === tableData.length - 1) {
+              data.cell.styles.fillColor = [255, 255, 255];
+              data.cell.styles.textColor = [0, 0, 0];
+              data.cell.styles.fontStyle = 'bold';
+            }
+            
+            const key = `${data.row.index}-${data.column.index}`;
+            if (urlMap.has(key) && data.section !== 'head') {
+              data.cell.styles.textColor = [0, 0, 255];
+            }
+          },
+          didDrawCell: (data) => {
+            const key = `${data.row.index}-${data.column.index}`;
+            const url = urlMap.get(key);
+            if (url && data.section === 'body') {
+              doc.link(data.cell.x, data.cell.y, data.cell.width, data.cell.height, { url });
+            }
+          },
+          didDrawPage: (data) => {
+            const pageNum = doc.getNumberOfPages();
+            if (pageNum === 1) return; // Skip cover page headers
+
+            // Page Header
+            drawLogoOnDoc(doc, 10, 6, 8, 8);
+            doc.setFont("Helvetica", "normal");
+            doc.setFontSize(8.5);
+            doc.setTextColor(0, 0, 0);
+            const headerText = `AGT Base Report - Civ: ${civFilterVal} / Galaxy: ${selectedGalaxy || 'All'} / Region: ${selectedRegion || 'All'}`;
+            doc.text(headerText, 20, 11);
+            doc.text(`Page ${pageNum - 1}`, doc.internal.pageSize.width - 10, 11, { align: 'right' });
+
+            // Header divider line in hex color #FF0500
+            doc.setDrawColor(255, 5, 0);
+            doc.setLineWidth(0.3);
+            doc.line(10, 16, doc.internal.pageSize.width - 10, 16);
+
+            // Page Footer divider line in hex color #FF0500
+            doc.line(10, doc.internal.pageSize.height - 12, doc.internal.pageSize.width - 10, doc.internal.pageSize.height - 12);
+
+            // Footer Text
+            doc.setTextColor(0, 0, 0);
+            doc.setFontSize(8);
+            const leftFooterStr = `Survey Date Range: ${surveyRangeStr}`;
+            doc.text(leftFooterStr, 10, doc.internal.pageSize.height - 7);
+
+            const rightFooterStr = `Report Date: ${new Date().toLocaleDateString()}`;
+            doc.text(rightFooterStr, doc.internal.pageSize.width - 10, doc.internal.pageSize.height - 7, { align: 'right' });
+          }
+        });
+
+        const now = new Date();
+        const pad = (n: number) => String(n).padStart(2, '0');
+        const timestamp = `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
+        const reportLabel = reportType === 'simple' ? 'Simple' : (reportType === 'detailed' ? 'Detail' : 'Custom');
+        doc.save(`AGT Base Report-${reportLabel}-${timestamp}.pdf`);
+      } catch (err) {
+        console.error("PDF generation failed:", err);
+      } finally {
+        setIsGeneratingFile(false);
       }
-    });
-
-    const now = new Date();
-    const pad = (n: number) => String(n).padStart(2, '0');
-    const timestamp = `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
-    const reportLabel = reportType === 'simple' ? 'Simple' : (reportType === 'detailed' ? 'Detail' : 'Custom');
-    doc.save(`AGT Base Report-${reportLabel}-${timestamp}.pdf`);
+    }, 1800);
   };
 
   const downloadCsv = () => {
-    if (matchedRecords.length === 0) return;
-    
-    const activeCols = columns.filter(col => col.enabled);
-    const csvData = matchedRecords.map(record => {
-      const row: any = {};
-      activeCols.forEach(col => {
-        row[col.name] = getDisplayValue(record[col.name], col.rawIndex);
-      });
-      return row;
-    });
-    
-    const csv = Papa.unparse(csvData);
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    
-    const now = new Date();
-    const pad = (n: number) => String(n).padStart(2, '0');
-    const timestamp = `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
-    const reportLabel = reportType === 'simple' ? 'Simple' : (reportType === 'detailed' ? 'Detail' : 'Custom');
-    
-    if (link.download !== undefined) {
-      const url = URL.createObjectURL(blob);
-      link.setAttribute('href', url);
-      link.setAttribute('download', `AGT Base Report-${reportLabel}-${timestamp}.csv`);
-      link.style.visibility = 'hidden';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+    if (!verifiedName || !verifiedID || securityLevel <= 0) {
+      setPopupMsg("PDF Report and Download CSV are only available to Registered AGT Travellers. Check your log in details in the Settings menu.");
+      return;
     }
+    if (sortedMatchedRecords.length === 0) return;
+    
+    setIsGeneratingFile(true);
+    
+    setTimeout(() => {
+      try {
+        const activeCols = columns.filter(col => col.enabled);
+        const csvData = sortedMatchedRecords.map(record => {
+          const row: any = {};
+          activeCols.forEach(col => {
+            row[col.name] = getDisplayValue(record[col.name], col.rawIndex);
+          });
+          return row;
+        });
+        
+        const csv = Papa.unparse(csvData);
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        
+        const now = new Date();
+        const pad = (n: number) => String(n).padStart(2, '0');
+        const timestamp = `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
+        const reportLabel = reportType === 'simple' ? 'Simple' : (reportType === 'detailed' ? 'Detail' : 'Custom');
+        
+        if (link.download !== undefined) {
+          const url = URL.createObjectURL(blob);
+          link.setAttribute('href', url);
+          link.setAttribute('download', `AGT Base Report-${reportLabel}-${timestamp}.csv`);
+          link.style.visibility = 'hidden';
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+        }
+      } catch (err) {
+        console.error("CSV download failed:", err);
+      } finally {
+        setIsGeneratingFile(false);
+      }
+    }, 1500);
   };
 
   const toggleColumn = (name: string) => {
@@ -1734,7 +2260,84 @@ export default function App() {
     }
   };
 
+  const handleSelectAllCustomCols = () => {
+    const allIdxs = Array.from(new Set(CUSTOM_COLUMN_TOGGLES.flatMap(item => item.idxs)));
+    setCustomEnabledIndices(allIdxs);
+    localStorage.setItem('agt_custom_cols', JSON.stringify(allIdxs));
+
+    if (reportType === 'custom') {
+      const updatedCols = columns.map(col => ({
+        ...col,
+        enabled: true
+      }));
+      setColumns(updatedCols);
+      if (data.length) {
+        findRecord(data, updatedCols);
+      }
+    }
+  };
+
+  const handleResetCustomCols = () => {
+    setCustomEnabledIndices([]);
+    localStorage.setItem('agt_custom_cols', JSON.stringify([]));
+
+    if (reportType === 'custom') {
+      const updatedCols = columns.map(col => ({
+        ...col,
+        enabled: false
+      }));
+      setColumns(updatedCols);
+      if (data.length) {
+        findRecord(data, updatedCols);
+      }
+    }
+  };
+
   const activeColumnsCount = useMemo(() => columns.filter(c => c.enabled).length, [columns]);
+
+  useEffect(() => {
+    if (!tableRef.current) return;
+    
+    const observer = new ResizeObserver(() => {
+      if (tableRef.current) {
+        setTableWidth(tableRef.current.getBoundingClientRect().width);
+      }
+      if (bottomScrollRef.current) {
+        setContainerWidth(bottomScrollRef.current.clientWidth);
+      }
+    });
+
+    observer.observe(tableRef.current);
+    if (bottomScrollRef.current) {
+      observer.observe(bottomScrollRef.current);
+    }
+    
+    // Initial width
+    setTableWidth(tableRef.current.getBoundingClientRect().width);
+    if (bottomScrollRef.current) {
+      setContainerWidth(bottomScrollRef.current.clientWidth);
+    }
+    
+    return () => {
+      observer.disconnect();
+    };
+  }, [paginatedRecords, columns]);
+
+  const handleTopScroll = () => {
+    if (topScrollRef.current && bottomScrollRef.current) {
+      if (Math.abs(bottomScrollRef.current.scrollLeft - topScrollRef.current.scrollLeft) > 1) {
+        bottomScrollRef.current.scrollLeft = topScrollRef.current.scrollLeft;
+      }
+    }
+  };
+
+  const handleBottomScroll = () => {
+    if (topScrollRef.current && bottomScrollRef.current) {
+      if (Math.abs(topScrollRef.current.scrollLeft - bottomScrollRef.current.scrollLeft) > 1) {
+        topScrollRef.current.scrollLeft = bottomScrollRef.current.scrollLeft;
+      }
+    }
+  };
 
   const totalPoints = useMemo(() => {
     return matchedRecords.length;
@@ -1746,6 +2349,31 @@ export default function App() {
       onTouchStart={handleManualPlay}
       className="min-h-screen bg-[#0a0a0a] text-agt-orange font-sans selection:bg-agt-orange selection:text-black"
     >
+      {isGeneratingFile && (
+        <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-black/90 backdrop-blur-md">
+          <style>{`
+            @keyframes spin-y-custom {
+              0% { transform: rotateY(0deg); }
+              100% { transform: rotateY(360deg); }
+            }
+            .animate-spin-y-custom {
+              animation: spin-y-custom 2.2s linear infinite;
+              transform-style: preserve-3d;
+            }
+          `}</style>
+          <div className="flex flex-col items-center gap-6">
+            <img 
+              src={logoSrc} 
+              alt="Rotating AGT Icon" 
+              className="w-24 h-24 object-contain animate-spin-y-custom p-1"
+              referrerPolicy="no-referrer"
+            />
+            <p className="text-[#FF0500] font-mono text-sm tracking-[0.2em] font-bold uppercase select-none text-center animate-pulse">
+              Preparing AGT Data Packet
+            </p>
+          </div>
+        </div>
+      )}
       {/* Header */}
       <header className="border-b border-agt-orange/5 bg-black/40 backdrop-blur-md sticky top-0 z-50">
         <div className="max-w-5xl mx-auto px-6 h-20 flex items-center justify-between">
@@ -1782,6 +2410,28 @@ export default function App() {
                 {loading ? t('SYNCING') : sheetUrl ? t('CONNECTED') : t('DISCONNECTED')}
               </span>
             </div>
+            
+            <div 
+              className="px-2.5 py-1 border rounded-lg font-mono text-[10px] md:text-sm font-bold whitespace-nowrap bg-black/45"
+              style={{
+                color: getSecurityLevelInfo(verifiedName && verifiedID ? securityLevel : 0).rgb,
+                borderColor: getSecurityLevelInfo(verifiedName && verifiedID ? securityLevel : 0).rgb
+              }}
+            >
+              {verifiedName && verifiedID ? verifiedName.slice(0, 12) : "Public User"}
+            </div>
+
+            <a
+              href="https://www.nms-agt.com/support"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="p-2 bg-transparent border-0 outline-none focus:outline-none cursor-pointer flex items-center justify-center transition-transform hover:scale-110 active:scale-95"
+              title="Support"
+              id="support-bug-btn"
+            >
+              <Bug className="w-5 h-5 text-[#FF0500]" />
+            </a>
+
             <motion.button 
               onClick={() => setShowSettings(true)}
               whileHover={{ rotate: 180 }}
@@ -1801,15 +2451,38 @@ export default function App() {
       </header>
 
       <main className="max-w-5xl mx-auto px-6 py-16">
+        {/* Upper-right "Contribute" button, aligned right */}
+        <div className="flex justify-end -mt-8 mb-6">
+          <a
+            href="https://www.nms-agt.com/contribute"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center px-4 py-1.5 border border-[#FF0500] bg-[#E25530] text-white hover:bg-[#E25530]/80 rounded-lg text-[8px] uppercase tracking-[0.15em] font-bold transition-all shadow-[0_2px_10px_rgba(255,5,0,0.1)] active:scale-[0.96] font-mono h-fit"
+            id="contribute-btn"
+          >
+            {t('Contribute')}
+          </a>
+        </div>
+
+        {/* player-bases-icon.png icon horizontally centered */}
+        <div className="flex justify-center mb-6">
+          <img 
+            src={playerBasesIcon} 
+            alt="Player Bases" 
+            className="w-24 h-24 object-contain rounded-2xl border-2 border-[#FF0500] p-1 shadow-[0_0_20px_rgba(255,5,0,0.15)] bg-[#0c0c0c]"
+            referrerPolicy="no-referrer"
+          />
+        </div>
+
         <div className="flex flex-col gap-16">
           
           {/* Main Search Logic Container - centered aesthetic */}
           <div className="flex flex-col items-center space-y-12">
             <div className="w-full max-w-xl text-center space-y-4">
-              <h2 className="text-4xl font-light tracking-tight text-[#FFB451]">{t("AGT Base Report Tool")}</h2>
+              <h2 className="text-4xl font-light tracking-tight text-[#FFB451]">{t("AGT Base Report")}</h2>
               
               {/* Category selector */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mb-4 w-full">
+              <div className="flex flex-col sm:flex-row justify-center gap-3 mb-4 w-full sm:w-auto max-w-xs sm:max-w-none mx-auto">
                 {[
                   { id: 'all', label: t('All Bases') },
                   { id: 'style', label: t('Base Style') },
@@ -1833,7 +2506,7 @@ export default function App() {
                         );
                       }
                     }}
-                    className={`px-4 py-3 rounded-xl text-[9px] uppercase tracking-widest font-bold transition-all border-2 ${
+                    className={`px-6 py-3 rounded-xl text-[9px] uppercase tracking-widest font-bold transition-all border-2 w-full sm:w-44 ${
                       planetCategory === cat.id 
                         ? 'bg-[#E25530] text-white border-[#FF0500] shadow-[0_0_15px_rgba(226,85,48,0.3)]' 
                         : 'text-agt-orange border-[#FF0500]/30 hover:bg-[#FF0500]/10'
@@ -1892,146 +2565,171 @@ export default function App() {
                 </div>
               </div>
 
-              <div className="flex flex-col md:flex-row items-center justify-center gap-4">
-                <div className="space-y-1">
-                  <p className="text-[#FFB451] text-[10px] font-bold tracking-widest uppercase">{t('Criteria 1')}</p>
-                  <p className="text-[#FFB451] text-xs font-bold tracking-widest uppercase">{t('Select Civilization')}</p>
-                </div>
-                <div className="h-px w-8 bg-[#FF0500]/30 hidden md:block mt-4"></div>
-                <div className="space-y-1">
-                  <p className="text-[#FFB451] text-[10px] font-bold tracking-widest uppercase">{t('Criteria 2')}</p>
-                  <p className="text-[#FFB451] text-xs font-bold tracking-widest uppercase">
-                    {t('Select')} <a href="https://nomanssky.fandom.com/wiki/Galaxy" target="_blank" rel="noopener noreferrer" className="underline hover:text-[#FFB451]/80 transition-colors">Galaxy</a>
-                  </p>
-                </div>
-                <div className="h-px w-8 bg-[#FF0500]/30 hidden md:block mt-4"></div>
-                <div className="space-y-1">
-                  <p className="text-[#FFB451] text-[10px] font-bold tracking-widest uppercase">{t('Criteria 3')}</p>
-                  <p className="text-[#FFB451] text-xs font-bold tracking-widest uppercase">{t('Enter Region')}</p>
-                </div>
-                {planetCategory === 'style' && (
-                  <>
-                    <div className="h-px w-8 bg-[#FF0500]/30 hidden md:block mt-4"></div>
-                    <div className="space-y-1">
-                      <p className="text-[#FFB451] text-[10px] font-bold tracking-widest uppercase">{t('Criteria 4')}</p>
-                      <p className="text-[#FFB451] text-xs font-bold tracking-widest uppercase">{t('Select Style')}</p>
-                    </div>
-                  </>
-                )}
-                {planetCategory === 'type' && (
-                  <>
-                    <div className="h-px w-8 bg-[#FF0500]/30 hidden md:block mt-4"></div>
-                    <div className="space-y-1">
-                      <p className="text-[#FFB451] text-[10px] font-bold tracking-widest uppercase">{t('Criteria 4')}</p>
-                      <p className="text-[#FFB451] text-xs font-bold tracking-widest uppercase">{t('Select Type')}</p>
-                    </div>
-                  </>
-                )}
-              </div>
             </div>
 
-            <div className={`w-full max-w-5xl grid grid-cols-1 ${planetCategory !== 'all' ? 'md:grid-cols-4' : 'md:grid-cols-3'} gap-6`}>
+            <div className={`w-full max-w-5xl grid grid-cols-1 sm:grid-cols-2 ${planetCategory !== 'all' ? 'lg:grid-cols-5' : 'lg:grid-cols-4'} gap-6`}>
               {/* Civilization Search */}
-              <Autocomplete
-                id="civilization-select"
-                value={searchKey}
-                placeholder={t("Civilization Search...")}
-                options={uniqueCivilizations}
-                icon={<Search className="h-5 w-5" />}
-                onChange={(val) => {
-                  setSearchKey(val);
-                  if (data.length) {
-                    findRecord(data, columns, val, selectedGalaxy, selectedRegion, planetCategory, selectedStyle, selectedType, includeDeconstructed);
-                  } else {
-                    fetchData({ searchKey: val });
-                  }
-                }}
-              />
+              <div className="flex flex-col w-full">
+                <label className="block text-xs font-bold font-mono tracking-widest text-[#FFB451] uppercase mb-2 ml-1" htmlFor="civilization-select">
+                  {t("Civilization")}
+                </label>
+                <Autocomplete
+                  id="civilization-select"
+                  value={searchKey}
+                  placeholder={t("Civilization Search...")}
+                  options={uniqueCivilizations}
+                  icon={<Search className="h-5 w-5" />}
+                  onChange={(val) => {
+                    setSearchKey(val);
+                    if (data.length) {
+                      findRecord(data, columns, val, selectedGalaxy, selectedRegion, planetCategory, selectedStyle, selectedType, includeDeconstructed, undefined, undefined, selectedBuilderName);
+                    } else {
+                      fetchData({ searchKey: val });
+                    }
+                  }}
+                />
+              </div>
 
               {/* Galaxy Search */}
-              <Autocomplete
-                id="galaxy-select"
-                value={selectedGalaxy}
-                placeholder={t("Galaxy Search...")}
-                options={uniqueGalaxies}
-                icon={<Globe className="h-5 w-5" />}
-                onChange={(val) => {
-                  setSelectedGalaxy(val);
-                  if (data.length) {
-                    findRecord(data, columns, searchKey, val, selectedRegion, planetCategory, selectedStyle, selectedType, includeDeconstructed);
-                  }
-                }}
-              />
+              <div className="flex flex-col w-full">
+                <label className="block text-xs font-bold font-mono tracking-widest text-[#FFB451] uppercase mb-2 ml-1" htmlFor="galaxy-select">
+                  {t("Galaxy")}
+                </label>
+                <Autocomplete
+                  id="galaxy-select"
+                  value={selectedGalaxy}
+                  placeholder={t("Galaxy Search...")}
+                  options={uniqueGalaxies}
+                  icon={<Globe className="h-5 w-5" />}
+                  onChange={(val) => {
+                    setSelectedGalaxy(val);
+                    if (data.length) {
+                      findRecord(data, columns, searchKey, val, selectedRegion, planetCategory, selectedStyle, selectedType, includeDeconstructed, undefined, undefined, selectedBuilderName);
+                    }
+                  }}
+                />
+              </div>
 
               {/* Region Search */}
-              <Autocomplete
-                id="region-select"
-                value={selectedRegion}
-                placeholder={t("Region Search...")}
-                options={uniqueRegions}
-                icon={<Database className="h-5 w-5" />}
-                onChange={(val) => {
-                  setSelectedRegion(val);
-                  if (data.length) {
-                    findRecord(data, columns, searchKey, selectedGalaxy, val, planetCategory, selectedStyle, selectedType, includeDeconstructed);
-                  }
-                }}
-              />
+              <div className="flex flex-col w-full">
+                <label className="block text-xs font-bold font-mono tracking-widest text-[#FFB451] uppercase mb-2 ml-1" htmlFor="region-select">
+                  {t("Region")}
+                </label>
+                <Autocomplete
+                  id="region-select"
+                  value={selectedRegion}
+                  placeholder={t("Region Search...")}
+                  options={uniqueRegions}
+                  icon={<Database className="h-5 w-5" />}
+                  onChange={(val) => {
+                    setSelectedRegion(val);
+                    if (data.length) {
+                      findRecord(data, columns, searchKey, selectedGalaxy, val, planetCategory, selectedStyle, selectedType, includeDeconstructed, undefined, undefined, selectedBuilderName);
+                    }
+                  }}
+                />
+              </div>
+
+              {/* Builder Name Search */}
+              <div className="flex flex-col w-full">
+                <label className="block text-xs font-bold font-mono tracking-widest text-[#FFB451] uppercase mb-2 ml-1" htmlFor="builder-select">
+                  {t("Builder Name")}
+                </label>
+                <Autocomplete
+                  id="builder-select"
+                  value={selectedBuilderName}
+                  placeholder={t("Builder Name Search...")}
+                  options={uniqueBuilders}
+                  icon={<Search className="h-5 w-5" />}
+                  onChange={(val) => {
+                    setSelectedBuilderName(val);
+                    if (data.length) {
+                      findRecord(data, columns, searchKey, selectedGalaxy, selectedRegion, planetCategory, selectedStyle, selectedType, includeDeconstructed, undefined, undefined, val);
+                    }
+                  }}
+                />
+              </div>
 
               {/* Style Search - Only if category is style */}
               {planetCategory === 'style' && (
-                <div className="relative group">
-                  <div className="absolute inset-y-0 left-0 pl-6 flex items-center pointer-events-none text-[#FF0500] group-focus-within:text-[#FF0500] transition-colors">
-                    <Table className="h-5 w-5" />
+                <div className="flex flex-col w-full">
+                  <div className="flex items-center gap-1.5 mb-2 ml-1">
+                    <label className="text-xs font-bold font-mono tracking-widest text-[#FFB451] uppercase cursor-help" htmlFor="style-select">
+                      {t("Base Style")}
+                    </label>
+                    <div className="relative group flex items-center">
+                      <Info className="w-3.5 h-3.5 text-agt-orange/60 hover:text-agt-orange transition-colors" />
+                      <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 p-3 bg-[#111111] border border-[#FF0500]/50 text-[#FFB451] text-[10px] font-mono leading-relaxed rounded-xl shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 pointer-events-none text-center">
+                        {t("Ground/ Aerial/ Upper Atmosphere/ Water surface/ Aquatic/ Cave/ Underground")}
+                      </span>
+                    </div>
                   </div>
-                  <select
-                    value={selectedStyle}
-                    onChange={(e) => {
-                      const val = e.target.value;
-                      setSelectedStyle(val);
-                      if (data.length) {
-                        findRecord(data, columns, searchKey, selectedGalaxy, selectedRegion, planetCategory, val, selectedType, includeDeconstructed);
-                      }
-                    }}
-                    className="block w-full pl-14 pr-12 py-5 bg-[#141414] border-2 border-[#FF0500] rounded-full text-lg font-mono tracking-wider focus:outline-none focus:ring-2 focus:ring-[#FF0500] focus:border-[#FF0500] transition-all input-glow text-[#FFB451] appearance-none shadow-[0_0_30px_rgba(255,5,0,0.05)]"
-                    id="style-select"
-                  >
-                    <option value="All" className="bg-[#141414]">{t("All Styles")}</option>
-                    {BASE_STYLES.map(style => (
-                      <option key={style} value={style} className="bg-[#141414]">{style}</option>
-                    ))}
-                  </select>
-                  <div className="absolute right-4 inset-y-0 flex items-center pointer-events-none text-[#FF0500]">
-                    <ChevronRight className="w-5 h-5 rotate-90" />
+                  <div className="relative group">
+                    <div className="absolute inset-y-0 left-0 pl-6 flex items-center pointer-events-none text-[#FF0500] group-focus-within:text-[#FF0500] transition-colors">
+                      <Table className="h-5 w-5" />
+                    </div>
+                    <select
+                      value={selectedStyle}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setSelectedStyle(val);
+                        if (data.length) {
+                          findRecord(data, columns, searchKey, selectedGalaxy, selectedRegion, planetCategory, val, selectedType, includeDeconstructed, undefined, undefined, selectedBuilderName);
+                        }
+                      }}
+                      className="block w-full pl-14 pr-12 py-5 bg-[#141414] border-2 border-[#FF0500] rounded-full text-lg font-mono tracking-wider focus:outline-none focus:ring-2 focus:ring-[#FF0500] focus:border-[#FF0500] transition-all input-glow text-[#FFB451] appearance-none shadow-[0_0_30px_rgba(255,5,0,0.05)]"
+                      id="style-select"
+                    >
+                      <option value="All" className="bg-[#141414]">{t("All Styles")}</option>
+                      {BASE_STYLES.map(style => (
+                        <option key={style} value={style} className="bg-[#141414]">{style}</option>
+                      ))}
+                    </select>
+                    <div className="absolute right-4 inset-y-0 flex items-center pointer-events-none text-[#FF0500]">
+                      <ChevronRight className="w-5 h-5 rotate-90" />
+                    </div>
                   </div>
                 </div>
               )}
 
               {/* Type Search - Only if category is type */}
               {planetCategory === 'type' && (
-                <div className="relative group">
-                  <div className="absolute inset-y-0 left-0 pl-6 flex items-center pointer-events-none text-[#FF0500] group-focus-within:text-[#FF0500] transition-colors">
-                    <Table className="h-5 w-5" />
+                <div className="flex flex-col w-full">
+                  <div className="flex items-center gap-1.5 mb-2 ml-1">
+                    <label className="text-xs font-bold font-mono tracking-widest text-[#FFB451] uppercase cursor-help" htmlFor="type-select">
+                      {t("Base Type")}
+                    </label>
+                    <div className="relative group flex items-center">
+                      <Info className="w-3.5 h-3.5 text-agt-orange/60 hover:text-agt-orange transition-colors" />
+                      <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 p-2 bg-[#111111] border border-[#FF0500]/50 text-[#FFB451] text-[10px] font-mono leading-normal rounded-xl shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 pointer-events-none text-center">
+                        {t("Primary Base Purpose")}
+                      </span>
+                    </div>
                   </div>
-                  <select
-                    value={selectedType}
-                    onChange={(e) => {
-                      const val = e.target.value;
-                      setSelectedType(val);
-                      if (data.length) {
-                        findRecord(data, columns, searchKey, selectedGalaxy, selectedRegion, planetCategory, selectedStyle, val, includeDeconstructed);
-                      }
-                    }}
-                    className="block w-full pl-14 pr-12 py-5 bg-[#141414] border-2 border-[#FF0500] rounded-full text-lg font-mono tracking-wider focus:outline-none focus:ring-2 focus:ring-[#FF0500] focus:border-[#FF0500] transition-all input-glow text-[#FFB451] appearance-none shadow-[0_0_30px_rgba(255,5,0,0.05)]"
-                    id="type-select"
-                  >
-                    <option value="All" className="bg-[#141414]">{t("All Types")}</option>
-                    {BASE_TYPES.map(type => (
-                      <option key={type} value={type} className="bg-[#141414]">{type}</option>
-                    ))}
-                  </select>
-                  <div className="absolute right-4 inset-y-0 flex items-center pointer-events-none text-[#FF0500]">
-                    <ChevronRight className="w-5 h-5 rotate-90" />
+                  <div className="relative group">
+                    <div className="absolute inset-y-0 left-0 pl-6 flex items-center pointer-events-none text-[#FF0500] group-focus-within:text-[#FF0500] transition-colors">
+                      <Table className="h-5 w-5" />
+                    </div>
+                    <select
+                      value={selectedType}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setSelectedType(val);
+                        if (data.length) {
+                          findRecord(data, columns, searchKey, selectedGalaxy, selectedRegion, planetCategory, selectedStyle, val, includeDeconstructed, undefined, undefined, selectedBuilderName);
+                        }
+                      }}
+                      className="block w-full pl-14 pr-12 py-5 bg-[#141414] border-2 border-[#FF0500] rounded-full text-lg font-mono tracking-wider focus:outline-none focus:ring-2 focus:ring-[#FF0500] focus:border-[#FF0500] transition-all input-glow text-[#FFB451] appearance-none shadow-[0_0_30px_rgba(255,5,0,0.05)]"
+                      id="type-select"
+                    >
+                      <option value="All" className="bg-[#141414]">{t("All Types")}</option>
+                      {BASE_TYPES.map(type => (
+                        <option key={type} value={type} className="bg-[#141414]">{type}</option>
+                      ))}
+                    </select>
+                    <div className="absolute right-4 inset-y-0 flex items-center pointer-events-none text-[#FF0500]">
+                      <ChevronRight className="w-5 h-5 rotate-90" />
+                    </div>
                   </div>
                 </div>
               )}
@@ -2122,6 +2820,63 @@ export default function App() {
               </div>
             </div>
 
+            {verifiedName && verifiedID && securityLevel > 0 && (
+              <div className="flex flex-col sm:flex-row items-center gap-6 bg-black/40 border-2 border-[#FF0500] px-8 py-4 rounded-3xl backdrop-blur-sm shadow-[0_4px_20px_rgba(255,5,0,0.03)] selection:bg-none">
+                <span className="text-[11px] md:text-sm uppercase tracking-[0.15em] font-bold text-agt-orange font-mono">
+                  Security Controls:
+                </span>
+                <div className="flex flex-wrap items-center gap-6">
+                  <label className="flex items-center gap-2 cursor-pointer font-mono text-xs text-[#FFB451] hover:text-white" id="filter-omit-public-label">
+                    <input
+                      type="checkbox"
+                      checked={securityOmitFilter === 'omit_public'}
+                      onChange={() => {
+                        setSecurityOmitFilter('omit_public');
+                        if (data.length) {
+                          findRecord(data, columns, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, 'omit_public');
+                        }
+                      }}
+                      className="accent-[#FF0500] h-4 w-4 bg-[#1c1c1c] border-2 border-[#FF0500]/50 rounded text-[#FF0500] focus:ring-0 cursor-pointer"
+                      id="filter-omit-public"
+                    />
+                    <span>Omit Public Records</span>
+                  </label>
+                  
+                  <label className="flex items-center gap-2 cursor-pointer font-mono text-xs text-[#FFB451] hover:text-white" id="filter-omit-classified-label">
+                    <input
+                      type="checkbox"
+                      checked={securityOmitFilter === 'omit_classified'}
+                      onChange={() => {
+                        setSecurityOmitFilter('omit_classified');
+                        if (data.length) {
+                          findRecord(data, columns, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, 'omit_classified');
+                        }
+                      }}
+                      className="accent-[#FF0500] h-4 w-4 bg-[#1c1c1c] border-2 border-[#FF0500]/50 rounded text-[#FF0500] focus:ring-0 cursor-pointer"
+                      id="filter-omit-classified"
+                    />
+                    <span>Omit Classified Records</span>
+                  </label>
+
+                  <label className="flex items-center gap-2 cursor-pointer font-mono text-xs text-[#FFB451] hover:text-white" id="filter-all-label">
+                    <input
+                      type="checkbox"
+                      checked={securityOmitFilter === 'all'}
+                      onChange={() => {
+                        setSecurityOmitFilter('all');
+                        if (data.length) {
+                          findRecord(data, columns, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, 'all');
+                        }
+                      }}
+                      className="accent-[#FF0500] h-4 w-4 bg-[#1c1c1c] border-2 border-[#FF0500]/50 rounded text-[#FF0500] focus:ring-0 cursor-pointer"
+                      id="filter-all"
+                    />
+                    <span>All Records</span>
+                  </label>
+                </div>
+              </div>
+            )}
+
             <div className="flex flex-row items-center justify-center gap-4">
               <button
                 onClick={handleSearch}
@@ -2148,13 +2903,15 @@ export default function App() {
                   setSearchKey('All');
                   setSelectedGalaxy('All');
                   setSelectedRegion('All');
+                  setSelectedBuilderName('All');
                   setStartDate('');
                   setEndDate('');
                   setSelectedStyle('All');
                   setSelectedType('All');
                   setIncludeDeconstructed(false);
+                  setSecurityOmitFilter('all');
                   if (data.length) {
-                    findRecord(data, columns, 'All', 'All', 'All', planetCategory, 'All', 'All', false, '', '');
+                    findRecord(data, columns, 'All', 'All', 'All', planetCategory, 'All', 'All', false, '', '', 'All', undefined, 'all');
                   }
                 }}
                 className="px-8 py-5 border-2 border-[#FF0500] bg-[#E25530] text-white rounded-full font-black text-sm uppercase tracking-[0.2em] hover:bg-[#E25530]/80 active:scale-[0.96] transition-all"
@@ -2203,23 +2960,6 @@ export default function App() {
                     </div>
 
                     <div className="space-y-6">
-                      {/* Database Source Synchronizer */}
-                      <div className="border-b-2 border-[#FF0500]/30 pb-5">
-                        <h3 className="text-xs uppercase tracking-widest font-bold text-[#FFB451] mb-2 flex items-center gap-2 font-mono">
-                          <Database className="w-4 h-4 text-[#FF0500]" />
-                          {t("Source Identity")}
-                        </h3>
-                        <button
-                          onClick={() => {
-                            fetchData();
-                            setShowSettings(false);
-                          }}
-                          className="w-full py-2.5 bg-[#E25530] hover:bg-[#E25530]/80 text-white font-bold text-xs uppercase tracking-widest rounded-xl transition-all border-2 border-[#FF0500]"
-                        >
-                          {t("Resync Database")}
-                        </button>
-                      </div>
-
                       {/* Font Scaling & Records Per Page side-by-side dropdowns */}
                       <div className="grid grid-cols-2 gap-4 border-b-2 border-[#FF0500]/30 pb-5">
                         <div>
@@ -2232,7 +2972,7 @@ export default function App() {
                             onChange={(e) => setFontScale(e.target.value)}
                             className="w-full bg-[#1c1c1c] border-2 border-[#FF0500]/30 rounded-xl px-2.5 py-2 text-xs text-agt-orange font-mono focus:outline-none focus:border-[#FF0500] transition-colors"
                           >
-                            {['1x', '1.5x', '2x', '2.5x', '3x'].map(scale => (
+                            {['1x', '1.25x', '1.5x', '2x', '2.5x', '3x'].map(scale => (
                               <option key={scale} value={scale} className="bg-[#141414]">
                                 {scale === '1x' ? '1x (default)' : scale}
                               </option>
@@ -2264,35 +3004,187 @@ export default function App() {
                         </div>
                       </div>
 
+                      {/* Traveller ID & Name Verification setting */}
+                      <div className="border-b-2 border-[#FF0500]/30 pb-5 space-y-4">
+                        <h3 className="text-xs uppercase tracking-widest font-bold text-[#FFB451] flex items-center gap-1.5 font-mono">
+                          <UserCheck className="w-3.5 h-3.5 text-[#FF0500]" />
+                          AGT Traveller Registration
+                        </h3>
+                        
+                        <div className="space-y-3">
+                          <div>
+                            <label className="block text-[10px] uppercase tracking-wider text-agt-orange/70 mb-1 font-mono">
+                              Traveller Name (max 42 chars)
+                            </label>
+                            <input
+                              type="text"
+                              value={travellerNameInput}
+                              onChange={(e) => {
+                                let val = e.target.value;
+                                if (val.length <= 42) {
+                                  setTravellerNameInput(val);
+                                }
+                              }}
+                              placeholder="e.g. Explorer Prime"
+                              className="w-full bg-[#1c1c1c] border-2 border-[#FF0500]/30 rounded-xl px-3 py-2 text-xs text-white font-mono focus:outline-none focus:border-[#FF0500] transition-colors placeholder-agt-orange/30"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-[10px] uppercase tracking-wider text-agt-orange/70 mb-1 font-mono">
+                              AGT Traveller ID (########-????-####)
+                            </label>
+                            <input
+                              type="text"
+                              value={travellerIdInput}
+                              onChange={(e) => setTravellerIdInput(e.target.value)}
+                              placeholder="e.g. 37411005-ABC9-1234"
+                              className="w-full bg-[#1c1c1c] border-2 border-[#FF0500]/30 rounded-xl px-3 py-2 text-xs text-white font-mono focus:outline-none focus:border-[#FF0500] transition-colors placeholder-agt-orange/30"
+                            />
+                            {verifiedName && verifiedID && (
+                              <div className="flex justify-end mt-2">
+                                <div 
+                                  className="px-3 py-1.5 border rounded-xl font-mono text-xs font-bold whitespace-nowrap bg-black/50"
+                                  style={{ 
+                                    color: getSecurityLevelInfo(securityLevel).rgb,
+                                    borderColor: getSecurityLevelInfo(securityLevel).rgb
+                                  }}
+                                >
+                                  {verifiedName}:{getSecurityLevelInfo(securityLevel).text}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+
+                          <div className="flex gap-2 pt-1.5 font-mono">
+                            <button
+                              type="button"
+                              onClick={handleVerifyID}
+                              disabled={isVerifying}
+                              className="flex-1 py-2 px-3 border-2 border-[#FF0500] bg-[#E25530] text-white hover:bg-[#E25530]/80 disabled:opacity-50 rounded-xl font-bold text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-1"
+                            >
+                              {isVerifying ? (
+                                <span className="animate-pulse">Verifying...</span>
+                              ) : (
+                                <>
+                                  <CheckCircle className="w-3.5 h-3.5" />
+                                  Verify & Save
+                                </>
+                              )}
+                            </button>
+                            
+                            <button
+                              type="button"
+                              onClick={handleClearVerification}
+                              className="py-2 px-3 border-2 border-[#FF0500]/50 bg-black text-[#FF0500] hover:bg-[#FF0500]/10 rounded-xl font-bold text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-1"
+                              title="Clear ID and Cookies"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                              Clear
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Verification Error message with hyperlink */}
+                        {verificationError && (
+                          <div className="p-2.5 bg-red-950/40 border border-[#FF0500]/50 rounded-xl text-[10px] text-white leading-normal font-mono">
+                            {verificationError}
+                          </div>
+                        )}
+
+                        {/* Verified Status indicators */}
+                        {verifiedName && verifiedID && (
+                          <div className="p-3 bg-green-950/20 border border-green-500/30 rounded-xl space-y-1 font-mono text-[10px] text-green-400">
+                            <div className="font-bold uppercase tracking-wider flex items-center gap-1">
+                              <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-ping" />
+                              VERIFIED TRAVELLER
+                            </div>
+                            <div>Name: <span className="text-white">{verifiedName}</span></div>
+                            <div>ID: <span className="text-white">{verifiedID}</span></div>
+                            <div>Clearance: <span className="text-white uppercase font-bold">
+                              {securityLevel === 0 && "Public"}
+                              {securityLevel === 1 && "Private"}
+                              {securityLevel === 2 && "Restricted"}
+                              {securityLevel === 3 && "Top Secret"}
+                              {securityLevel === 4 && "SLT Restricted"}
+                              {securityLevel === 5 && "SCC Restricted"}
+                            </span></div>
+                          </div>
+                        )}
+                      </div>
+
                       {/* Custom Report Column Settings Selector */}
                       <div className="border-b-2 border-[#FF0500]/30 pb-5">
-                        <h3 className="text-xs uppercase tracking-widest font-bold text-[#FFB451] mb-1 flex items-center gap-1.5 font-mono">
-                          <Table className="w-4 h-4 text-[#FF0500]" />
-                          {t("Custom Report Columns")}
-                        </h3>
-                        <p className="text-[9px] text-[#FFB451]/50 mb-2 font-mono">
-                          {t("Configure which columns appear in the Custom Report")}
-                        </p>
-                        
-                        <div className="flex flex-wrap gap-1 max-h-48 overflow-y-auto p-1.5 bg-black/30 rounded-xl border border-[#FF0500]/20 scrollbar-thin scrollbar-thumb-[#E25530] scrollbar-track-transparent">
-                          {CUSTOM_COLUMN_TOGGLES.map(item => {
-                            const isEnabled = item.idxs.every(idx => customEnabledIndices.includes(idx));
-                            
-                            return (
-                              <button
-                                key={item.colNum}
-                                onClick={() => handleToggleIndices(item.idxs)}
-                                className={`px-1.5 py-0.5 text-[8px] font-bold font-mono tracking-wide rounded border transition-all ${
-                                  isEnabled
-                                    ? 'bg-[#E25530] text-white border-[#FF0500] shadow-[0_0_4px_rgba(255,5,0,0.3)]'
-                                    : 'bg-[#1a1a1a] text-[#FFB451]/50 border-[#FF0500]/20 hover:text-[#FFB451] hover:bg-[#FF0500]/10'
-                                }`}
-                              >
-                                {item.label}
-                              </button>
-                            );
-                          })}
-                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setCustomColsExpanded(!customColsExpanded)}
+                          className="w-full flex items-center justify-between text-xs uppercase tracking-widest font-bold text-[#FFB451] hover:text-[#E25530] transition-colors font-mono group py-1"
+                        >
+                          <span className="flex flex-col items-start gap-0.5 text-left">
+                            <span className="flex items-center gap-1.5">
+                              <Table className="w-4 h-4 text-[#FF0500]" />
+                              {t("Custom Report Columns")}
+                            </span>
+                            <span className="text-[9px] text-[#FFB451]/50 normal-case font-normal font-sans ml-5.5">
+                              {t("Configure which columns appear in the Custom Report")}
+                            </span>
+                          </span>
+                          <ChevronRight 
+                            className={`w-4 h-4 text-[#FF0500] transition-transform duration-300 ${
+                              customColsExpanded ? "rotate-90" : ""
+                            }`} 
+                          />
+                        </button>
+
+                        <AnimatePresence initial={false}>
+                          {customColsExpanded && (
+                            <motion.div
+                              initial={{ height: 0, opacity: 0 }}
+                              animate={{ height: "auto", opacity: 1 }}
+                              exit={{ height: 0, opacity: 0 }}
+                              transition={{ duration: 0.25, ease: "easeInOut" }}
+                              className="overflow-hidden mt-3"
+                            >
+                              <div className="flex gap-2 mb-2.5">
+                                <button
+                                  type="button"
+                                  onClick={handleSelectAllCustomCols}
+                                  className="flex-1 py-1.5 bg-[#E25530]/15 hover:bg-[#E25530]/30 border border-[#FF0500]/50 text-white rounded-lg text-[9px] uppercase font-bold tracking-wider transition-all"
+                                >
+                                  {t("Select All")}
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={handleResetCustomCols}
+                                  className="flex-1 py-1.5 bg-[#1a1a1a] hover:bg-black/40 border border-[#FF0500]/25 text-[#FFB451]/70 hover:text-[#FFB451] rounded-lg text-[9px] uppercase font-bold tracking-wider transition-all"
+                                >
+                                  {t("Reset")}
+                                </button>
+                              </div>
+                              
+                              <div className="grid grid-cols-3 gap-1.5 max-h-48 overflow-y-auto p-1.5 bg-black/30 rounded-xl border border-[#FF0500]/20 scrollbar-thin scrollbar-thumb-[#E25530] scrollbar-track-transparent">
+                                {CUSTOM_COLUMN_TOGGLES.map(item => {
+                                  const isEnabled = item.idxs.every(idx => customEnabledIndices.includes(idx));
+                                  
+                                  return (
+                                    <button
+                                      key={item.colNum}
+                                      type="button"
+                                      onClick={() => handleToggleIndices(item.idxs)}
+                                      className={`px-1 py-1 px-1.5 py-1 text-[8px] font-bold font-mono tracking-wide rounded border transition-all text-center truncate ${
+                                        isEnabled
+                                          ? 'bg-[#E25530] text-white border-[#FF0500] shadow-[0_0_4px_rgba(255,5,0,0.3)]'
+                                          : 'bg-[#1a1a1a] text-[#FFB451]/50 border-[#FF0500]/20 hover:text-[#FFB451] hover:bg-[#FF0500]/10'
+                                      }`}
+                                    >
+                                      {item.label}
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
                       </div>
 
                       {/* Language Selection Selection block */}
@@ -2323,11 +3215,11 @@ export default function App() {
                         </select>
                       </div>
 
-                      {/* Background AGT Anthem */}
-                      <div className="flex items-center justify-between pt-1">
+                      {/* AGT Anthem */}
+                      <div className="flex items-center justify-between border-b-2 border-[#FF0500]/30 pb-5 pt-1">
                         <h3 className="text-xs uppercase tracking-widest font-bold text-[#FFB451] flex items-center gap-1.5 font-mono">
                           <Volume2 className="w-4 h-4 text-[#FF0500]" />
-                          {t("Background AGT Anthem")}
+                          {t("AGT Anthem")}
                         </h3>
                         <button 
                           onClick={() => setAudioEnabled(!audioEnabled)}
@@ -2339,6 +3231,23 @@ export default function App() {
                         >
                           {audioEnabled ? <Volume2 className="w-3.5 h-3.5" /> : <VolumeX className="w-3.5 h-3.5" />}
                           {audioEnabled ? t('Active') : t('Muted')}
+                        </button>
+                      </div>
+
+                      {/* Database Sync */}
+                      <div className="pt-1">
+                        <h3 className="text-xs uppercase tracking-widest font-bold text-[#FFB451] mb-2 flex items-center gap-2 font-mono">
+                          <Database className="w-4 h-4 text-[#FF0500]" />
+                          {t("Database Sync")}
+                        </h3>
+                        <button
+                          onClick={() => {
+                            fetchData();
+                            setShowSettings(false);
+                          }}
+                          className="w-full py-2.5 bg-[#E25530] hover:bg-[#E25530]/80 text-white font-bold text-xs uppercase tracking-widest rounded-xl transition-all border-2 border-[#FF0500]"
+                        >
+                          {t("Resync Database")}
                         </button>
                       </div>
                     </div>
@@ -2397,10 +3306,13 @@ export default function App() {
                   >
                     <div className="p-8 border-b-2 border-[#FF0500] flex flex-col md:flex-row md:items-center justify-between gap-6">
                       <div className="space-y-1">
-                        <h3 className="text-xl font-medium text-agt-orange flex items-center gap-3">
+                        <h3 className="text-xl font-medium text-agt-orange flex flex-wrap items-center gap-3">
                           AGT Galactic Archives Results
                           <span className="px-2 py-0.5 rounded-full bg-[#E25530] text-[10px] text-white border border-[#FF0500] font-mono">
                             {matchedRecords.length} FOUND
+                          </span>
+                          <span className="px-2 py-0.5 rounded-full bg-[#E25530] text-[10px] text-white border border-[#FF0500] font-mono">
+                            Classified Records Omitted: {classifiedOmittedCount}
                           </span>
                         </h3>
                         <p className="text-[10px] text-agt-orange uppercase tracking-[0.2em]">Verified Galactic Ledger Matches</p>
@@ -2426,15 +3338,57 @@ export default function App() {
                       </div>
                     </div>
 
-                    <div className="overflow-x-auto custom-scrollbar">
-                      <table className="w-full text-left border-collapse">
+                    {/* Top Synchronized Scrollbar */}
+                    {tableWidth > containerWidth && (
+                      <div 
+                        ref={topScrollRef} 
+                        className="overflow-x-auto custom-scrollbar scrollbar-thin scrollbar-thumb-[#E25530] scrollbar-track-transparent mb-1" 
+                        onScroll={handleTopScroll}
+                        style={{ width: '100%', scrollbarWidth: 'thin' }}
+                      >
+                        <div style={{ width: `${tableWidth}px`, height: '1px' }}></div>
+                      </div>
+                    )}
+
+                    <div 
+                      ref={bottomScrollRef}
+                      onScroll={handleBottomScroll}
+                      className="overflow-x-auto custom-scrollbar scrollbar-thin scrollbar-thumb-[#E25530] scrollbar-track-transparent"
+                      style={{ width: '100%', scrollbarWidth: 'thin' }}
+                    >
+                      <table ref={tableRef} className="w-full text-left border-collapse">
                         <thead>
                           <tr className="bg-agt-orange/[0.02] border-b-2 border-[#FF0500]">
-                            {columns.filter(col => col.enabled).map((col, idx) => (
-                              <th key={idx} className="py-2 px-4 text-[9px] uppercase tracking-widest font-bold text-agt-orange whitespace-nowrap">
-                                {col.name}
-                              </th>
-                            ))}
+                            {columns.filter(col => col.enabled).map((col, idx) => {
+                              const isCurrentSort = sortColumn === col.name;
+                              const isUrl = isUrlColumn(col.rawIndex, col.name);
+                              return (
+                                <th 
+                                  key={idx} 
+                                  onClick={() => handleSortColumn(col.name)}
+                                  className={`py-2 px-4 text-[9px] uppercase tracking-widest font-bold text-agt-orange cursor-pointer hover:bg-agt-orange/5 select-none transition-colors leading-tight ${
+                                    isUrl 
+                                      ? 'whitespace-normal break-words min-w-[75px] max-w-[100px]' 
+                                      : 'whitespace-nowrap'
+                                  }`}
+                                >
+                                  <div className="flex items-center gap-1.5 flex-wrap">
+                                    <span>{col.name}</span>
+                                    <span className="inline-flex shrink-0">
+                                      {isCurrentSort ? (
+                                        sortDirection === 'asc' ? (
+                                          <ArrowUp className="w-3 h-3 text-white" />
+                                        ) : (
+                                          <ArrowDown className="w-3 h-3 text-white" />
+                                        )
+                                      ) : (
+                                        <ArrowUpDown className="w-3 h-3 text-agt-orange/20 hover:text-agt-orange/50 transition-colors" />
+                                      )}
+                                    </span>
+                                  </div>
+                                </th>
+                              );
+                            })}
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-[#FF0500]/30">
@@ -2442,21 +3396,34 @@ export default function App() {
                             <tr key={rIdx} className="hover:bg-agt-orange/[0.02] transition-colors group">
                               {columns.filter(col => col.enabled).map((col, cIdx) => {
                                 const cellVal = getDisplayValue(record[col.name], col.rawIndex);
-                                const isWikiLink = col.name.trim().toLowerCase().includes('wiki') || String(cellVal).startsWith('http');
+                                const isUrl = isUrlColumn(col.rawIndex, col.name, record[col.name]);
+                                
+                                if (isUrl) {
+                                  const hasLink = record[col.name] && String(record[col.name]).trim() !== '';
+                                  return (
+                                    <td 
+                                      key={cIdx} 
+                                      className="py-1 px-4 text-[10px] font-mono text-center min-w-[75px] max-w-[100px]"
+                                    >
+                                      {hasLink ? (
+                                        <a
+                                          href={String(record[col.name])}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="text-blue-500 hover:text-blue-400 hover:underline font-bold transition-colors"
+                                        >
+                                          LINK
+                                        </a>
+                                      ) : (
+                                        <span className="text-agt-orange/40">-</span>
+                                      )}
+                                    </td>
+                                  );
+                                }
+                                
                                 return (
                                   <td key={cIdx} className="py-1 px-4 text-[10px] text-agt-orange font-mono whitespace-nowrap overflow-hidden text-ellipsis max-w-[200px]">
-                                    {isWikiLink ? (
-                                      <a
-                                        href={String(record[col.name] || cellVal)}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="underline hover:text-[#E25530] text-agt-orange transition-colors"
-                                      >
-                                        {cellVal || 'Link'}
-                                      </a>
-                                    ) : (
-                                      cellVal || <span className="text-agt-orange italic">-</span>
-                                    )}
+                                    {cellVal || <span className="text-agt-orange italic">-</span>}
                                   </td>
                                 );
                               })}
@@ -2554,15 +3521,19 @@ export default function App() {
                     )}
 
                     <div className="p-6 border-t border-agt-orange/5 flex flex-col md:flex-row items-center justify-between gap-6 bg-agt-orange/[0.01]">
-                      <div className="flex items-center gap-4">
-                        <div className="flex items-center gap-2">
-                          <div className="w-1.5 h-1.5 rounded-full bg-agt-orange shadow-[0_0_8px_rgba(255,180,81,0.4)]"></div>
-                          <span className="text-[9px] uppercase tracking-widest text-agt-orange font-bold">Ledger Integrity: Verified</span>
-                        </div>
-                        <span className="text-[9px] font-mono text-agt-orange uppercase tracking-widest hidden md:inline">
-                          Index Reference: {Math.random().toString(16).substring(2, 8).toUpperCase()}
-                        </span>
+                      <div className="flex items-center gap-2">
+                        <div className={`w-2 h-2 rounded-full ${
+                          loading 
+                            ? 'bg-yellow-500 shadow-[0_0_8px_rgba(234,179,8,0.7)] animate-pulse'
+                            : (sheetUrl && !error && data.length > 0)
+                              ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.7)] animate-pulse'
+                              : 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.7)] animate-pulse'
+                        }`}></div>
+                        <span className="text-[10px] uppercase tracking-widest text-[#FFB451] font-bold font-mono">Ledger Integrity: Verified</span>
                       </div>
+                      <span className="text-[10px] font-mono text-[#FFB451]/60 uppercase tracking-widest md:text-right">
+                        AGT SECURE ARCHIVE CLIENT
+                      </span>
                     </div>
                   </motion.section>
                 ) : !loading && (
@@ -2641,6 +3612,40 @@ export default function App() {
             <p className="mt-8 text-lg font-mono font-black tracking-widest uppercase text-[#E25530]">
               Searching AGT Base Records
             </p>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Branded AGT Alert/Notification Popup Modal Overlay */}
+      <AnimatePresence>
+        {popupMsg && (
+          <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="w-full max-w-sm bg-[#141414] border-2 border-[#FF0500] rounded-3xl p-6 text-center space-y-6 shadow-[0_0_50px_rgba(255,5,0,0.35)]"
+            >
+              <div className="flex justify-center">
+                <div className="w-16 h-16 rounded-full bg-black border-2 border-[#FF0500] flex items-center justify-center">
+                  <CheckCircle className="w-8 h-8 text-[#FF0500]" />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <h4 className="text-md uppercase font-mono tracking-widest text-[#FFFFB0]">
+                  AGT TRANSIT SECURITY
+                </h4>
+                <p className="text-sm font-mono text-white leading-relaxed">
+                  {popupMsg}
+                </p>
+              </div>
+              <button
+                onClick={() => setPopupMsg(null)}
+                className="w-full py-2.5 border-2 border-[#FF0500] bg-[#E25530] text-white hover:bg-[#E25530]/80 rounded-full font-bold text-xs uppercase tracking-widest transition-all font-mono active:scale-[0.97]"
+              >
+                Acknowledge
+              </button>
+            </motion.div>
           </div>
         )}
       </AnimatePresence>
